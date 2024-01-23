@@ -10,18 +10,24 @@ For example usage, please refer to the [examples](https://github.com/PaloAltoNet
 
 ## Reference
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
+### Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.0, < 2.0.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.17 |
 
-## Modules
+### Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.17 |
+
+### Modules
 
 No modules.
 
-## Resources
+### Resources
 
 | Name | Type |
 |------|------|
@@ -30,12 +36,12 @@ No modules.
 | [aws_ec2_transit_gateway_vpc_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment) | resource |
 | [aws_ec2_transit_gateway_vpc_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_transit_gateway_vpc_attachment) | data source |
 
-## Inputs
+### Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_appliance_mode_support"></a> [appliance\_mode\_support](#input\_appliance\_mode\_support) | See the [provider documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment). | `string` | `"enable"` | no |
-| <a name="input_create"></a> [create](#input\_create) | Trigger module mode between creating a new TGW Attachment or retrieving an existing one. | `bool` | `false` | no |
+| <a name="input_create"></a> [create](#input\_create) | Trigger module mode between creating a new TGW Attachment or retrieving an existing one. | `bool` | `true` | no |
 | <a name="input_dns_support"></a> [dns\_support](#input\_dns\_support) | See the [provider documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment). | `string` | `null` | no |
 | <a name="input_id"></a> [id](#input\_id) | ID of an existing TGW Attachment. Used in conjunction with `create = false`. When set, takes precedence over `var.name`. | `string` | `null` | no |
 | <a name="input_ipv6_support"></a> [ipv6\_support](#input\_ipv6\_support) | See the [provider documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_vpc_attachment). | `string` | `null` | no |
@@ -46,7 +52,7 @@ No modules.
 | <a name="input_transit_gateway_route_table"></a> [transit\_gateway\_route\_table](#input\_transit\_gateway\_route\_table) | TGW's route table which should receive the traffic coming from the `subnet_set` (also called an association). An object with at least two attributes:<pre>transit_gateway_route_table = {<br>  id                 = "tgw-rtb-1234"<br>  transit_gateway_id = "tgw-1234"<br>}</pre> | <pre>object({<br>    id                 = string<br>    transit_gateway_id = string<br>  })</pre> | <pre>{<br>  "id": null,<br>  "transit_gateway_id": null<br>}</pre> | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | AWS identifier of a VPC containing the Attachment. | `string` | n/a | yes |
 
-## Outputs
+### Outputs
 
 | Name | Description |
 |------|-------------|
