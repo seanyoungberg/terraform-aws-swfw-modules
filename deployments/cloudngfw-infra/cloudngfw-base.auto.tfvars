@@ -125,8 +125,8 @@ vpcs = {
       # Do not modify value of `set=`, it is an internal identifier referenced by main.tf.
       "10.104.1.0/24"   = { az = "eu-west-1a", set = "app1_vm", nacl = null }
       "10.104.2.0/24"   = { az = "eu-west-1b", set = "app1_vm", nacl = null }
-      "10.104.3.0/24"   = { az = "eu-west-1a", set = "tgw_attach", nacl = null }
-      "10.104.4.0/24"   = { az = "eu-west-1b", set = "tgw_attach", nacl = null }
+      "10.104.3.0/24"   = { az = "eu-west-1a", set = "app1_tgw_attach", nacl = null }
+      "10.104.4.0/24"   = { az = "eu-west-1b", set = "app1_tgw_attach", nacl = null }
       "10.104.5.0/24"   = { az = "eu-west-1a", set = "app1_gwlbe", nacl = null }
       "10.104.6.0/24"   = { az = "eu-west-1b", set = "app1_gwlbe", nacl = null }
       "10.104.7.0/24"   = { az = "eu-west-1a", set = "app1_lb", nacl = null }
@@ -158,7 +158,7 @@ vpcs = {
   }
   app2_vpc = {
     name  = "app2-spoke-vpc"
-    cidr  = "10.105.0.0/16"
+    cidr  = "10.104.0.0/16"
     nacls = {}
     security_groups = {
       app2_vm = {
@@ -172,17 +172,17 @@ vpcs = {
           ssh = {
             description = "Permit SSH"
             type        = "ingress", from_port = "22", to_port = "22", protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
+            cidr_blocks = ["130.41.210.140/32", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
           }
           https = {
             description = "Permit HTTPS"
             type        = "ingress", from_port = "443", to_port = "443", protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
+            cidr_blocks = ["130.41.210.140/32", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
           }
           http = {
             description = "Permit HTTP"
             type        = "ingress", from_port = "80", to_port = "80", protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
+            cidr_blocks = ["130.41.210.140/32", "10.104.0.0/16", "10.105.0.0/16"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
           }
         }
       }
@@ -197,24 +197,26 @@ vpcs = {
           https = {
             description = "Permit HTTPS"
             type        = "ingress", from_port = "443", to_port = "443", protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
+            cidr_blocks = ["130.41.210.140/32"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
           }
           http = {
             description = "Permit HTTP"
             type        = "ingress", from_port = "80", to_port = "80", protocol = "tcp"
-            cidr_blocks = ["0.0.0.0/0"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
+            cidr_blocks = ["130.41.210.140/32"] # TODO: update here (replace 0.0.0.0/0 by your IP range)
           }
         }
       }
     }
     subnets = {
       # Do not modify value of `set=`, it is an internal identifier referenced by main.tf.
-      "10.105.0.0/24"   = { az = "eu-west-1a", set = "app2_vm", nacl = null }
-      "10.105.128.0/24" = { az = "eu-west-1b", set = "app2_vm", nacl = null }
-      "10.105.2.0/24"   = { az = "eu-west-1a", set = "app2_lb", nacl = null }
-      "10.105.130.0/24" = { az = "eu-west-1b", set = "app2_lb", nacl = null }
-      "10.105.3.0/24"   = { az = "eu-west-1a", set = "app2_gwlbe", nacl = null }
-      "10.105.131.0/24" = { az = "eu-west-1b", set = "app2_gwlbe", nacl = null }
+      "10.104.1.0/24"   = { az = "eu-west-1a", set = "app2_vm", nacl = null }
+      "10.104.2.0/24"   = { az = "eu-west-1b", set = "app2_vm", nacl = null }
+      "10.104.3.0/24"   = { az = "eu-west-1a", set = "app2_tgw_attach", nacl = null }
+      "10.104.4.0/24"   = { az = "eu-west-1b", set = "app2_tgw_attach", nacl = null }
+      "10.104.5.0/24"   = { az = "eu-west-1a", set = "app2_gwlbe", nacl = null }
+      "10.104.6.0/24"   = { az = "eu-west-1b", set = "app2_gwlbe", nacl = null }
+      "10.104.7.0/24"   = { az = "eu-west-1a", set = "app2_lb", nacl = null }
+      "10.104.8.0/24"   = { az = "eu-west-1b", set = "app2_lb", nacl = null }
     }
     routes = {
       # Value of `vpc_subnet` is built from key of VPCs concatenate with `-` and key of subnet in format: `VPCKEY-SUBNETKEY`
@@ -263,20 +265,20 @@ tgw = {
     # Value of `vpc_subnet` is built from key of VPCs concatenate with `-` and key of subnet in format: `VPCKEY-SUBNETKEY`
     # Value of `route_table` and `propagate_routes_to` must match `route_tables` stores under `tgw`
     security = {
-      name                = "vmseries"
+      name                = "obew-vpc"
       vpc_subnet          = "obew_vpc-tgw_attach"
       route_table         = "from_obew_vpc"
       propagate_routes_to = "from_spoke_vpc"
     }
     app1 = {
       name                = "app1-spoke-vpc"
-      vpc_subnet          = "app1_vpc-app1_vm"
+      vpc_subnet          = "app1_vpc-app1_tgw_attach"
       route_table         = "from_spoke_vpc"
       propagate_routes_to = "from_obew_vpc"
     }
     app2 = {
       name                = "app2-spoke-vpc"
-      vpc_subnet          = "app2_vpc-app2_vm"
+      vpc_subnet          = "app2_vpc-app2_tgw_attach"
       route_table         = "from_spoke_vpc"
       propagate_routes_to = "from_obew_vpc"
     }
