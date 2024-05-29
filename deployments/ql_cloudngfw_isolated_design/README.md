@@ -142,9 +142,11 @@ You will authenticate against your Cloud NGFW by assuming roles in your AWS acco
 - Enter TrustedAccount ID and ExternalID from Cloud NGFW Console
 - Use Outputs from Stack to enter the IAM role ARNs for the QwikLab AWS account into Cloud NGFW Console
 
-## Manually Onboard Qwiklabs Account
+## Deploy AWS Infrastructure and Cloud NGFW Isolated Model
 
-
+- Rename example.tfvars to terraform.tfvars
+- Update terraform.tfvars with your QwikLabs AWS Account ID and SSH Key Name (Found in EC2 Console)
+- Initialize and Apply Terraform
 
 
 ## Reference
