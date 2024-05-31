@@ -37,6 +37,11 @@ Session 1
   - [2.7. Create IAM role for programmatic access](#27-create-iam-role-for-programmatic-access)
   - [2.10. Manually Onboard Qwiklabs Account](#210-manually-onboard-qwiklabs-account)
   - [2.11. Deploy AWS Infrastructure and Cloud NGFW Isolated Model](#211-deploy-aws-infrastructure-and-cloud-ngfw-isolated-model)
+  - [Enable CloudWatch Metrics](#enable-cloudwatch-metrics)
+  - [Enable CloudWatch Logs](#enable-cloudwatch-logs)
+  - [2.11. Create Outbound Policies for App1 in Cloud NGFW Console](#211-create-outbound-policies-for-app1-in-cloud-ngfw-console)
+  - [Create Outbound Policies for App2 with terraform](#create-outbound-policies-for-app2-with-terraform)
+  - [C](#c)
 
 
 
@@ -210,4 +215,36 @@ The initial deployment will be isolated model, where GWLB endpoints are created 
 
 `cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design/`
 
+`cp example.tfvars terraform.tfvars`
 
+- Edit value of `name_prefix` in `terraform.tfvars` to your name or a unique identifier. Make sure to save if you edit in the Cloud9 IDE.
+
+We will all be using the same Cloud NGFW tenant, so need a way to distinguish.
+
+- All other values can stay the same for now
+
+- Deploy infrastructure
+
+`terraform init`
+`terraform apply`
+
+Deployment will take around 5 minutes and then another 15 minutes before Cloud NGFW resource is ready.
+
+
+## Enable CloudWatch Metrics
+
+
+## Enable CloudWatch Logs
+
+
+
+## 2.11. Create Outbound Policies for App1 in Cloud NGFW Console
+
+- Prefix List for Source
+- FQDN List for Destination
+- App ID Policy
+
+
+## Create Outbound Policies for App2 with terraform
+
+## C

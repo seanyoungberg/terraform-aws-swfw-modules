@@ -2,6 +2,7 @@
 variable "provider_account" {
   description = "The AWS Account where the resources should be deployed."
   type        = string
+  default     = null
 }
 variable "provider_role" {
   description = "The predifined AWS assumed role for CloudNGFW."
