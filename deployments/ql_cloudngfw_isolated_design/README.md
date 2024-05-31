@@ -169,6 +169,8 @@ When executing terraform, you will need to reference profile `qwiklabs` in your 
 cd ~/environment && git clone https://github.com/seanyoungberg/terraform-aws-swfw-modules.git && chmod +x ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh && ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh
 
 
+cd ~/environment/terraform-aws-swfw-modules/deployments/iam_roles_cloudngfw/
+
 
 - Make sure CloudShell home directory is clean
 

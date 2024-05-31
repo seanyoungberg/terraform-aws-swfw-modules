@@ -22,13 +22,13 @@ curl -O https://releases.hashicorp.com/terraform/${LATEST_VERSION}/terraform_${L
 unzip terraform_${LATEST_VERSION}_linux_amd64.zip
 
 # Create the bin directory if it doesn't exist
-mkdir -p ~/environment/bin
+mkdir -p ~/bin
 
-# Move the Terraform binary to ~/environment/bin
-mv terraform ~/environment/bin/
+# Move the Terraform binary to ~/bin
+mv terraform ~/bin/
 
-# Ensure ~/environment/bin is in your PATH
-echo 'export PATH=$PATH:~/environment/bin' >> ~/.bashrc
+# Ensure ~/bin is in your PATH
+echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
 source ~/.bashrc
 
 # Verify the installation
