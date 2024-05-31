@@ -18,13 +18,13 @@ terraform {
 
 provider "aws" {
   region  = var.region
-  profile = var.aws_credentials_profile
+  #profile = var.aws_credentials_profile
 }
 
 
 provider "cloudngfwaws" {
   region    = var.region
-  profile   = var.aws_credentials_profile
+  #profile   = var.aws_credentials_profile
   host      = "api.${var.region}.aws.cloudngfw.paloaltonetworks.com"
   lfa_arn   = "arn:aws:iam::${var.provider_account}:role/${var.provider_role}"
   lra_arn   = "arn:aws:iam::${var.provider_account}:role/${var.provider_role}"

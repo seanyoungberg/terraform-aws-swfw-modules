@@ -1,12 +1,9 @@
 ### Provider
-variable "provider_account" {
-  description = "The AWS Account where the resources should be deployed."
-  type        = string
-}
 
 variable "region" {
   description = "AWS region used to deploy whole infrastructure"
   type        = string
+  default     = "us-west-2"
 }
 
 variable "aws_credentials_profile" {

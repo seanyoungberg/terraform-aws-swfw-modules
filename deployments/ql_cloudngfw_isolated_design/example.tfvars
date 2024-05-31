@@ -1,13 +1,10 @@
-### Provider
-provider_account        = "11111111" # TODO: update here
+### GENERAL
+name_prefix             = "cloudngfw-" # TODO: UPDATE TO YOUR NAME
 ssh_key_name            = "qwikLABS*"
 provider_role           = "CloudNGFWRole"
 aws_credentials_profile = "default" # TODO: If running locally, change to a profile with your QwikLabs credentials
+region                  = "us-west-2"
 
-
-### GENERAL
-region      = "us-west-2"
-name_prefix = "cloudngfw-"
 
 
 global_tags = {
