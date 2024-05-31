@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an AWS Cloud9 environment with a t2.micro instance and SSM.
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type for Cloud9 environment
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+
+Resources:
+  AWSCloud9SSMAccessRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - cloud9.amazonaws.com
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Description: 'Service linked role for AWS Cloud9'
+      Path: '/service-role/'
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile
+      RoleName: 'AWSCloud9SSMAccessRole'
+
+  AWSCloud9SSMInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      InstanceProfileName: AWSCloud9SSMInstanceProfile
+      Path: "/cloud9/"
+      Roles: 
+        - 
+          Ref: AWSCloud9SSMAccessRole
+
+  Cloud9Environment:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties: 
+      InstanceType: !Ref InstanceType
+      Name: Cloud9IDEEnvironment
+      Description: Cloud9 environment for Qwiklabs
+      ImageId: amazonlinux-2023-x86_64
+      AutomaticStopTimeMinutes: 60
+      ConnectionType: CONNECT_SSM
+      OwnerArn: !Sub "arn:aws:iam::${AWS::AccountId}:user/awsstudent"
+
+Outputs:
+  Cloud9URL:
+    Description: The URL of the Cloud9 environment.
+    Value: !Sub "https://console.aws.amazon.com/cloud9/ide/${Cloud9Environment}"
+    Export:
+      Name: Cloud9EnvironmentURL

@@ -13,6 +13,10 @@ provider "aws" {
   #profile = "qwiklabs"
 }
 
+### Get Account ID
+
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "ngfw_role" {
   name = "CloudNGFWRole"
 
@@ -50,7 +54,7 @@ resource "aws_iam_role" "ngfw_role" {
         "Effect" : "Allow",
         "Principal" : {
           "AWS" : [
-            "arn:aws:iam::${var.provider_account}:user/awsstudent"
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/awsstudent"
           ]
         },
         "Action" : "sts:AssumeRole"
