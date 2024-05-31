@@ -1,8 +1,9 @@
 ### Provider
-provider_account = "11111111" # TODO: update here
-ssh_key_name = "qwikLABS-xxxxxxx" # TODO: update here
-provider_role    = "CloudNGFWRole"
-#aws_credentials_profile = "qwiklabs"
+provider_account        = "11111111" # TODO: update here
+ssh_key_name            = "qwikLABS*"
+provider_role           = "CloudNGFWRole"
+aws_credentials_profile = "default" # TODO: If running locally, change to a profile with your QwikLabs credentials
+
 
 ### GENERAL
 region      = "us-west-2"

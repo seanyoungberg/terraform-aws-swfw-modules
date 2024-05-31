@@ -5,7 +5,7 @@ resource "cloudngfwaws_security_rule" "example" {
   name        = "outbound-app1-vms"
   description = "Also configured by Terraform"
   source {
-    prefix_lists = [ cloudngfwaws_prefix_list.app1_vms.name ]
+    prefix_lists = [cloudngfwaws_prefix_list.app1_vms.name]
   }
   destination {
     cidrs = ["any"]

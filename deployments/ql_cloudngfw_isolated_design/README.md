@@ -29,6 +29,7 @@ Session 1
     - [TOC](#toc)
   - [1.3. Isolated Design model](#13-isolated-design-model)
 - [2. Lab Session 1](#2-lab-session-1)
+  - [2.1. IDE Notes](#21-ide-notes)
   - [2.1. Initialize Qwiklab](#21-initialize-qwiklab)
     - [2.1.1. Find SSH Key Pair Name](#211-find-ssh-key-pair-name)
   - [2.2. Update IAM Policies](#22-update-iam-policies)
@@ -62,14 +63,32 @@ During this session you will:
 
 - Initialize Qwiklabs (QL) environment. Each will have their own on-demand AWS account that will be active throghout the workshop
 - Access existing Cloud NGFW tenant console
+- Access Cloud9 AWS IDE environment
 - Create IAM role for programmatic access inside QL AWS account
 - Onboard QL AWS account to existing Cloud NGFW tenant
 - Deploy prepared terraform to create 
 
+## 2.1. IDE Notes
+
+This lab guide is designed for using the AWS Cloud9 IDE environment for git, editing files, and executing terraform. The Cloud9 environment will inherit you AWS console user permissions. If you are familiar with these tools and prefer to run locally, you will need to need to copy the IAM keys from QwikLabs console.
+
+There are various way to do this, but one example is:
+
+```
+aws configure --profile qwiklabs
+AWS Access Key ID [None]: *****EXAMPLEACCESSKEY
+AWS Secret Access Key [None]: ************************EXAMPLESECRETKEY
+Default region name [None]: us-west-2
+Default output format [None]: json
+```
+
+When executing terraform, you will need to reference profile `qwiklabs` in your provider configuration in `versions.tf`.
+
 
 ## 2.1. Initialize Qwiklab
 
-- Download `Student Lab Details` File from Qwiklabs interface for later reference
+- Access [QwikLabs](https://paloaltonetworks.qwiklabs.com/) and create an account using PANW email or login with existing account
+- Start Lab from the Qwiklabs Classroom. It will take a few minutes to provision
 - Click Open Console and authenticate to AWS account with credentials displayed in Qwiklabs
 - Verify your selected region in AWS console (top right) matches the aws-gwlb-lab-secrets.txt
 - Open the [quiz](https://docs.google.com/forms/d/e/1FAIpQLSfkJdW2cz8kurjB0n7M-WvFOaqfRCuY6OemWf6okQheGO5LMQ/viewform) to answer questions as you go through the guide
@@ -146,6 +165,9 @@ During this session you will:
 ---
 
 ## 2.5. Download Terraform 
+
+cd ~ && git clone https://github.com/seanyoungberg/terraform-aws-swfw-modules.git && chmod +x ~/terraform-aws-swfw-modules/deployments/install_terraform.sh && ~/terraform-aws-swfw-modules/deployments/install_terraform.sh
+
 
 - Make sure CloudShell home directory is clean
 

@@ -10,8 +10,8 @@ variable "provider_role" {
 
 variable "aws_credentials_profile" {
   description = "The named AWS profile to use for authentcation"
-  type = string
-  default = "default"
+  type        = string
+  default     = "default"
 }
 
 
