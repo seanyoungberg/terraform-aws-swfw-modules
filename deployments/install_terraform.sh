@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set up a shared plugin cache directory for Terraform
-PLUGIN_CACHE_DIR=~/terraform-plugin-cache
+PLUGIN_CACHE_DIR=~/environment/terraform-plugin-cache
 
 # Create the plugin cache directory if it doesn't exist
 mkdir -p $PLUGIN_CACHE_DIR
@@ -10,7 +10,7 @@ mkdir -p $PLUGIN_CACHE_DIR
 export TF_PLUGIN_CACHE_DIR=$PLUGIN_CACHE_DIR
 
 # Add the TF_PLUGIN_CACHE_DIR environment variable to ~/.bashrc for persistence
-echo 'export TF_PLUGIN_CACHE_DIR=~/terraform-plugin-cache' >> ~/.bashrc
+echo 'export TF_PLUGIN_CACHE_DIR=~/environment/terraform-plugin-cache' >> ~/.bashrc
 
 # Fetch the latest Terraform version
 LATEST_VERSION=$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r .current_version)
@@ -22,13 +22,13 @@ curl -O https://releases.hashicorp.com/terraform/${LATEST_VERSION}/terraform_${L
 unzip terraform_${LATEST_VERSION}_linux_amd64.zip
 
 # Create the bin directory if it doesn't exist
-mkdir -p ~/bin
+mkdir -p ~/environment/bin
 
-# Move the Terraform binary to ~/bin
-mv terraform ~/bin/
+# Move the Terraform binary to ~/environment/bin
+mv terraform ~/environment/bin/
 
-# Ensure ~/bin is in your PATH
-echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
+# Ensure ~/environment/bin is in your PATH
+echo 'export PATH=$PATH:~/environment/bin' >> ~/.bashrc
 source ~/.bashrc
 
 # Verify the installation

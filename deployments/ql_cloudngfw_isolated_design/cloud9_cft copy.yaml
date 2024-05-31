@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an AWS Cloud9 environment with a t3.micro instance and SSM, and disable managed temporary credentials.
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type for Cloud9 environment
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+
+Resources:
+  Cloud9Environment:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      InstanceType: !Ref InstanceType
+      Name: Cloud9IDEEnvironment
+      Description: Cloud9 environment for Qwiklabs
+      AutomaticStopTimeMinutes: 60
+      ConnectionType: CONNECT_SSM
+
+  DisableTemporaryCredentialsDocument:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentType: "Command"
+      Content:
+        schemaVersion: "2.2"
+        description: "Disable managed temporary credentials in AWS Cloud9"
+        mainSteps:
+          - action: "aws:runShellScript"
+            name: "disableTemporaryCredentials"
+            inputs:
+              runCommand:
+                - "aws cloud9 update-environment-membership --environment-id $(aws cloud9 list-environments --query 'environmentIds[0]' --output text) --user-arn $(aws sts get-caller-identity --query Arn --output text) --permissions read-write --region us-west-2"
+                - "aws ssm send-command --document-name AWS-DisableAWSManagedTemporaryCredentials --targets Key=tag:aws:cloud9:environment,Values=$(aws cloud9 list-environments --query 'environmentIds[0]' --output text)"
+
+  RunCommandToDisableCredentials:
+    Type: AWS::SSM::Association
+    Properties:
+      Name: !Ref DisableTemporaryCredentialsDocument
+      Targets:
+        - Key: InstanceIds
+          Values: 
+            - !GetAtt Cloud9Environment.Ec2InstanceId
+
+Outputs:
+  EnvironmentId:
+    Description: The ID of the Cloud9 environment.
+    Value: !Ref Cloud9Environment
+    Export:
+      Name: Cloud9EnvironmentId
+
+  EnvironmentURL:
+    Description: The URL of the Cloud9 environment.
+    Value: !Sub "https://console.aws.amazon.com/cloud9/ide/${Cloud9Environment}"
+    Export:
+      Name: Cloud9EnvironmentURL

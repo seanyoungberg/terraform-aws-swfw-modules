@@ -33,6 +33,7 @@ Resources:
       Path: '/service-role/'
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile
+        - arn:aws:iam::aws:policy/AdministratorAccess
       RoleName: 'AWSCloud9SSMAccessRole'
 
   AWSCloud9SSMInstanceProfile:
