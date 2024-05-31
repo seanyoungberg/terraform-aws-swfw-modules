@@ -57,6 +57,16 @@ Session 1
 
 
 # 2. Lab Session 1
+
+During this session you will:
+
+- Initialize Qwiklabs (QL) environment. Each will have their own on-demand AWS account that will be active throghout the workshop
+- Access existing Cloud NGFW tenant console
+- Create IAM role for programmatic access inside QL AWS account
+- Onboard QL AWS account to existing Cloud NGFW tenant
+- Deploy prepared terraform to create 
+
+
 ## 2.1. Initialize Qwiklab
 
 - Download `Student Lab Details` File from Qwiklabs interface for later reference
