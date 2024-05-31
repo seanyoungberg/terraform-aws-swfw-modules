@@ -70,7 +70,7 @@ During this session you will:
 
 ## 2.1. IDE Notes
 
-This lab guide is designed for using the AWS Cloud9 IDE environment for git, editing files, and executing terraform. The Cloud9 environment will inherit you AWS console user permissions. If you are familiar with these tools and prefer to run locally, you will need to need to copy the IAM keys from QwikLabs console.
+This lab guide is designed for using the AWS Cloud9 IDE environment for git, editing files, and executing terraform. The Cloud9 environment will assume your AWS console user permissions. If you are familiar with these tools and prefer to run locally, you will need to need to copy the static IAM keys from QwikLabs console and use them in your local credentials.
 
 There are various way to do this, but one example is:
 
@@ -82,7 +82,7 @@ Default region name [None]: us-west-2
 Default output format [None]: json
 ```
 
-When executing terraform, you will need to reference profile `qwiklabs` in your provider configuration in `versions.tf`.
+When executing terraform, you will need to reference profile `qwiklabs` in your tfvars that will be passed to the provider block.
 
 
 ## 2.1. Initialize Qwiklab
