@@ -44,14 +44,14 @@ resource "aws_iam_role" "ngfw_role" {
         },
         "Action" : "sts:AssumeRole"
       },
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/service-role/AWSCloud9SSMAccessRole"
-            },
-            "Action": "sts:AssumeRole"
-        }
+      {
+          "Sid": "",
+          "Effect": "Allow",
+          "Principal": {
+              "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/service-role/AWSCloud9SSMAccessRole"
+          },
+          "Action": "sts:AssumeRole"
+      }
     ]
   })
 
