@@ -6,7 +6,6 @@ aws_credentials_profile = "default" # TODO: If running locally, change to a prof
 region                  = "us-west-2"
 
 
-
 global_tags = {
   ManagedBy   = "terraform"
   Application = "Palo Alto Networks Cloud NGFW"

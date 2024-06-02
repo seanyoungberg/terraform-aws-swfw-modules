@@ -2,7 +2,7 @@
 
 ## 1.1. Introduction
 
-This repository and associated code is intended for a specific lab scenario for learning. Nothing here should be referenced or intended for production use.
+This repository and associated code is intended for a specific lab scenario for learning. Nothing here should be used for production use-cases.
 
 ## 1.2. Navigation
 
@@ -28,7 +28,7 @@ Session 1
     - [1.2.1. Outline](#121-outline)
     - [1.2.2. TOC](#122-toc)
 - [2. Lab Session 1](#2-lab-session-1)
-  - [2.1. Topology](#21-topology)
+  - [2.1. Session 1 Topology](#21-session-1-topology)
   - [2.2. Initialize Qwiklab](#22-initialize-qwiklab)
   - [2.3. Local Execution Notes](#23-local-execution-notes)
   - [2.4. Update IAM Policies](#24-update-iam-policies)
@@ -37,6 +37,7 @@ Session 1
   - [2.7. Create IAM role for programmatic access](#27-create-iam-role-for-programmatic-access)
   - [2.10. Manually Onboard Qwiklabs Account](#210-manually-onboard-qwiklabs-account)
   - [2.11. Deploy AWS Infrastructure and Cloud NGFW Isolated Model](#211-deploy-aws-infrastructure-and-cloud-ngfw-isolated-model)
+  - [2.11. Add permissions for your user](#211-add-permissions-for-your-user)
   - [Enable CloudWatch Metrics](#enable-cloudwatch-metrics)
   - [Enable CloudWatch Logs](#enable-cloudwatch-logs)
   - [2.11. Create Outbound Policies for App1 in Cloud NGFW Console](#211-create-outbound-policies-for-app1-in-cloud-ngfw-console)
@@ -56,9 +57,9 @@ During this session you will:
 - Onboard QL AWS account to existing Cloud NGFW tenant
 - Deploy prepared terraform to create 
   
-## 2.1. Topology
+## 2.1. Session 1 Topology
 
-For this section, we will be deploying the isolated model and managing it via the native Cloud NGFW contructs.
+For this section, we will be deploying the isolated model and managing it via the native Cloud NGFW contructs. During later sections, we will be changing to other topologies.
 
 - Same Firewall Cluster(s) to inspect applications in multiple VPCs.
 - Transparently insert inspection in your application VPCs for both Ingress and Egress Traffic.
@@ -79,7 +80,9 @@ For this section, we will be deploying the isolated model and managing it via th
   
 ## 2.3. Local Execution Notes
 
-This lab guide is designed for using the AWS Cloud9 IDE environment for git, editing files, and executing terraform. The Cloud9 environment will assume your AWS console user permissions. If you are familiar with these tools and prefer to run locally, you will need to need to copy the static IAM keys from QwikLabs console and use them in your local credentials. Some of the other steps throughout this guide will need to be modified if running locally.
+This lab guide is designed for using the AWS Cloud9 IDE environment for git, editing files, and executing terraform. The Cloud9 environment will assume your AWS console user permissions.
+
+If you are familiar with these tools and prefer to run locally instead of in Cloud9, you will need to need to copy the static IAM keys from QwikLabs console and use them in your local credentials. Some of the other steps throughout this guide will need to be modified if running locally.
 
 There are various way to do this, but one example is:
 
@@ -154,13 +157,15 @@ When executing terraform, you will need to reference profile `qwiklabs` in your 
   - Execute a shell script to install terraform in the Cloud9 envitonment
 
 
-```cd ~/environment && git clone https://github.com/seanyoungberg/terraform-aws-swfw-modules.git && chmod +x ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh && ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh```
+```
+cd ~/environment && git clone https://github.com/seanyoungberg/terraform-aws-swfw-modules.git && chmod +x ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh && ~/environment/terraform-aws-swfw-modules/deployments/install_terraform.sh
+```
 
 
 > &#8505; Terraform projects often have version constraints in the code to protect against potentially breaking syntax changes when new version is released. For this project, the [version constraint](https://github.com/PaloAltoNetworks/lab-aws-gwlb-vmseries/blob/main/terraform/vmseries/versions.tf) is:
 > ```
 > terraform {
->  required_version = ">=0.12.29, <2.0"
+>  required_version = ">= 1.3.0, < 2.0.0"
 >}
 >```
 >
@@ -174,13 +179,28 @@ Before we can deploy Cloud NGFW resources with Terraform, we must first create a
 
 You will authenticate against your Cloud NGFW by assuming roles in your AWS account that are allowed to make API calls to the AWS API Gateway service. The associated tags with the roles dictate the type of Cloud NGFW programmatic access granted — Firewall Admin, RuleStack Admin, or Global Rulestack Admin.
 
-`cd ~/environment/terraform-aws-swfw-modules/deployments/iam_roles_cloudngfw/`
+- Execute terraform to create IAM role
 
-`cp example.tfvars terraform.tfvars`
+```
+cd ~/environment/terraform-aws-swfw-modules/deployments/iam_roles_cloudngfw/
 
-`terraform init`
+cp example.tfvars terraform.tfvars
 
-`terraform apply`
+terraform init
+
+terraform apply
+```
+
+- View the IAM Role in Console
+
+> &#10067; What is the purpose of this role?
+
+> &#10067; Who can assume this role?
+
+> &#10067; What do the tags allow?
+ 
+
+
 
 ## 2.10. Manually Onboard Qwiklabs Account
 
@@ -188,17 +208,24 @@ You will authenticate against your Cloud NGFW by assuming roles in your AWS acco
 - Authenticate with PANW SSO
 - Settings -> AWS Accounts -> Add AWS Account
 - Enter Account ID -> Download Cloud Formation Template
-- Create Cloud Formation Stack with downloaded template in QwikLabs AWS account
-- Enter a name for the stack
+- Create a new Cloud Formation Stack in the QwikLabs AWS account with `Upload a template file` option
+- Upload the yaml file you downloaded
+- Enter a name for the stack `CloudNgfwOnboarding`
 - Enter TrustedAccount ID and ExternalID from Cloud NGFW Console
   - Use `Check Details` on the AWS Accounts section
 - Other Parameters should remain with default values
 - Deploy Stack and ensure it completes successfully
 
-After Stack is complete, we must let Cloud NGFW know the ARN of the cross-account roles that were created.
+This template will create four different IAM roles that will allow Cloud NGFW service to perform actions inside the customer account.
+
+After Stack creation is complete, we must let Cloud NGFW know the ARN of the cross-account roles that were created.
 - In Cloud NGFW console, Use Actions menus on your AWS account to manage cross account roles
 - The ARNs of the roles can be found on the Outputs section of the CloudFormation Stack
 - Verify Status in Cloud NGFW Console goes to Success
+
+> &#8505; It is not currently possible to modify these role ARN mappings after they are saved. You must delete and re-add the account if there is any mistake.
+
+> &#10067; Which IAM Role(s) are required?
 
 ## 2.11. Deploy AWS Infrastructure and Cloud NGFW Isolated Model
 
@@ -213,22 +240,36 @@ The initial deployment will be isolated model, where GWLB endpoints are created 
 
 ![image](https://github.com/PaloAltoNetworks/terraform-aws-swfw-modules/assets/9754982/a1b04cd9-2324-4488-a104-34fdb15e4254)
 
-`cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design/`
+```
+cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design/
 
-`cp example.tfvars terraform.tfvars`
+cp example.tfvars terraform.tfvars
+```
 
-- Edit value of `name_prefix` in `terraform.tfvars` to your name or a unique identifier. Make sure to save if you edit in the Cloud9 IDE.
+We will all be sharing the same Cloud NGFW tenant, so need to set a unique name to identify your resources.
 
-We will all be using the same Cloud NGFW tenant, so need a way to distinguish.
+- Edit value of `name_prefix` in `terraform.tfvars` to your name or a unique identifier
+- **Make sure to save the change if you edit in the Cloud9 IDE.**
 
 - All other values can stay the same for now
-
 - Deploy infrastructure
 
-`terraform init`
-`terraform apply`
+```
+terraform init
+terraform apply
+```
 
 Deployment will take around 5 minutes and then another 15 minutes before Cloud NGFW resource is ready.
+
+## 2.11. Add permissions for your user
+
+CloudNGFW creates separate roles for each AWS account. Even if a user has tenant admin, you still must add specific roles to have permissions for RuleStacks and Firewalls per account.
+
+- In Cloud NGFW Console
+- Settings -> Users and Roles
+- Edit your user to add LocalFirewallAdmin and LocalRuleStackAdmin for your Qwiklabs AWS account
+
+T
 
 
 ## Enable CloudWatch Metrics
