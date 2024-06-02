@@ -269,7 +269,7 @@ CloudNGFW creates separate roles for each AWS account. Even if a user has tenant
 - Settings -> Users and Roles
 - Edit your user to add LocalFirewallAdmin and LocalRuleStackAdmin for your Qwiklabs AWS account
 
-T
+This must be done for any users that need to manage FW or rulestacks for an account. It is a commonly missed issue and can cause confustion for why users aren't able to do expected tasks in the console.
 
 
 ## Enable CloudWatch Metrics

@@ -233,6 +233,35 @@ resource "aws_iam_instance_profile" "spoke_vm_iam_instance_profile" {
 
 }
 
+locals {
+  web_user_data = <<EOF
+#!/bin/bash
+sleep 120;
+until sudo yum update -y; do echo "Retrying"; sleep 5; done
+until sudo yum install -y php; do echo "Retrying"; sleep 5; done
+until sudo yum install -y httpd; do echo "Retrying"; sleep 5; done
+until sudo rm -f /var/www/html/index.html; do echo "Retrying"; sleep 5; done
+until sudo wget -O /var/www/html/index.php https://raw.githubusercontent.com/wwce/terraform/master/gcp/adv_peering_2fw_2spoke_common/scripts/showheaders.php; do echo "Retrying"; sleep 2; done
+until sudo systemctl start httpd; do echo "Retrying"; sleep 5; done
+until sudo systemctl enable httpd; do echo "Retrying"; sleep 5; done
+EOF
+}
+
+### SSM external module for managing app servers
+module "ssm" {
+  source                    = "../modules/ssm"
+  #version                   = "0.4.2"
+  #vpc_id                    = module.spoke1_vpc.vpc_id.vpc_id
+  bucket_name               = "my-session-logs"
+  access_log_bucket_name    = "my-session-access-logs"
+  tags                      = {
+                                Function = "ssm"
+                              }
+  enable_log_to_s3          = false
+  enable_log_to_cloudwatch  = false
+  vpc_endpoints_enabled     = false
+}
+
 resource "aws_instance" "spoke_vms" {
   for_each = var.spoke_vms
 
@@ -255,16 +284,5 @@ resource "aws_instance" "spoke_vms" {
     http_tokens   = "required"
   }
 
-  user_data = <<EOF
-  #!/bin/bash
-  yum update -y
-  yum install -y httpd
-  systemctl start httpd
-  systemctl enable httpd
-  usermod -a -G apache ec2-user
-  chown -R ec2-user:apache /var/www
-  chmod 2775 /var/www
-  find /var/www -type d -exec chmod 2775 {} \;
-  find /var/www -type f -exec chmod 0664 {} \;
-  EOF
+  user_data = local.web_user_data
 }
