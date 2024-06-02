@@ -26,8 +26,8 @@ provider "cloudngfwaws" {
   region    = var.region
   #profile   = var.aws_credentials_profile
   host      = "api.${var.region}.aws.cloudngfw.paloaltonetworks.com"
-  lfa_arn   = "arn:aws:iam::${var.provider_account}:role/${var.provider_role}"
-  lra_arn   = "arn:aws:iam::${var.provider_account}:role/${var.provider_role}"
+  lfa_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.provider_role}"
+  lra_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.provider_role}"
   sync_mode = true
 }
 
