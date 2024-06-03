@@ -247,21 +247,6 @@ until sudo systemctl enable httpd; do echo "Retrying"; sleep 5; done
 EOF
 }
 
-### SSM external module for managing app servers
-module "ssm" {
-  source                    = "../modules/ssm"
-  #version                   = "0.4.2"
-  #vpc_id                    = module.spoke1_vpc.vpc_id.vpc_id
-  bucket_name               = "my-session-logs"
-  access_log_bucket_name    = "my-session-access-logs"
-  tags                      = {
-                                Function = "ssm"
-                              }
-  enable_log_to_s3          = false
-  enable_log_to_cloudwatch  = false
-  vpc_endpoints_enabled     = false
-}
-
 resource "aws_instance" "spoke_vms" {
   for_each = var.spoke_vms
 
