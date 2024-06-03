@@ -31,11 +31,11 @@ Session 1
   - [2.1. Session 1 Topology](#21-session-1-topology)
   - [2.2. Initialize Qwiklab](#22-initialize-qwiklab)
   - [2.3. Local Execution Notes](#23-local-execution-notes)
-  - [2.4. Update IAM Policies](#24-update-iam-policies)
-  - [2.5. Check Marketplace Subscriptions](#25-check-marketplace-subscriptions)
-  - [2.6. Setup Cloud9 IDE Environment](#26-setup-cloud9-ide-environment)
-  - [2.7. Create IAM role for programmatic access](#27-create-iam-role-for-programmatic-access)
-  - [2.8. Manually Onboard Qwiklabs Account](#28-manually-onboard-qwiklabs-account)
+  - [2.4. Manually Onboard Qwiklabs Account](#24-manually-onboard-qwiklabs-account)
+  - [2.5. Update IAM Policies](#25-update-iam-policies)
+  - [2.6. Check Marketplace Subscriptions](#26-check-marketplace-subscriptions)
+  - [2.7. Setup Cloud9 IDE Environment](#27-setup-cloud9-ide-environment)
+  - [2.8. Create IAM role for programmatic access](#28-create-iam-role-for-programmatic-access)
   - [2.9. Deploy AWS Infrastructure and Cloud NGFW Isolated Model](#29-deploy-aws-infrastructure-and-cloud-ngfw-isolated-model)
   - [2.10. Add permissions for your user](#210-add-permissions-for-your-user)
   - [2.11. Connect to instances](#211-connect-to-instances)
@@ -98,8 +98,37 @@ Default output format [None]: json
 
 When executing terraform, you will need to reference profile `qwiklabs` in your tfvars that will be passed to the provider block.
 
+## 2.4. Manually Onboard Qwiklabs Account
 
-## 2.4. Update IAM Policies
+In this section you will need to move around between Cloud NGFW console and the AWS Console.
+
+**There is an issue with using QwikLabs for Cloud NGFW labs. The Qwiklabs accounts are recycled after each use. Some accounts were incorrectly onboarded to a different tenant. We will onboard the account first to make sure it isn't already associated with another tenant. If you get an error when AWS account is already associated then you will have to restart Qwiklab to get a new account**
+
+- Navigate to the [Cloud NGFW web console](https://web.aws.cloudngfw.paloaltonetworks.com/)
+- Authenticate with PANW SSO
+- Settings -> AWS Accounts -> Add AWS Account
+- Enter Account ID -> Download Cloud Formation Template
+- Create a new Cloud Formation Stack in the QwikLabs AWS account with `Upload a template file` option
+- Upload the yaml file you downloaded
+- Enter a name for the stack `CloudNgfwOnboarding`
+- Enter TrustedAccount ID and ExternalID from Cloud NGFW Console
+  - From CloudNGFW Console you can use `Check Details` on the AWS Accounts section to get the External ID and Trusted ID
+- Other Parameters should remain with default values
+- Deploy Stack and ensure it completes successfully
+
+This template will create four different IAM roles that will allow Cloud NGFW service to perform actions inside the customer account.
+
+After Stack creation is complete, we must let Cloud NGFW know the ARN of the cross-account roles that were created.
+- In Cloud NGFW console, Use Actions menus on your AWS account to manage cross account roles
+- The ARNs of the roles can be found on the Outputs section of the CloudFormation Stack
+- Verify Status in Cloud NGFW Console goes to Success
+
+> &#8505; It is not currently possible to modify these role ARN mappings after they are saved. You must delete and re-add the account if there is any mistake.
+
+> &#10067; Which IAM Role(s) are required?
+
+
+## 2.5. Update IAM Policies
 
 
 - Search for `IAM` in top search bar (IAM is global)
@@ -120,7 +149,7 @@ When executing terraform, you will need to reference profile `qwiklabs` in your 
 
 ---
 
-## 2.5. Check Marketplace Subscriptions
+## 2.6. Check Marketplace Subscriptions
 
 > &#8505; Before you can launch Panorama images in an account, the account must first have accepted the Marketplace License agreement for that product.
 
@@ -144,7 +173,7 @@ When executing terraform, you will need to reference profile `qwiklabs` in your 
 
 ---
 
-## 2.6. Setup Cloud9 IDE Environment
+## 2.7. Setup Cloud9 IDE Environment
 
 - Copy Cloud9 URL from QwikLabs
   - Alternatively, search for Cloud9 in AWS Console
@@ -175,7 +204,7 @@ cd ~/environment && git clone https://github.com/seanyoungberg/terraform-aws-swf
 
 ---
 
-## 2.7. Create IAM role for programmatic access
+## 2.8. Create IAM role for programmatic access
 
 Before we can deploy Cloud NGFW resources with Terraform, we must first create a role in AWS.
 
@@ -201,33 +230,6 @@ terraform apply
 
 > &#10067; What do the tags allow?
  
-
-
-
-## 2.8. Manually Onboard Qwiklabs Account
-
-- Navigate to the [Cloud NGFW web console](https://web.aws.cloudngfw.paloaltonetworks.com/)
-- Authenticate with PANW SSO
-- Settings -> AWS Accounts -> Add AWS Account
-- Enter Account ID -> Download Cloud Formation Template
-- Create a new Cloud Formation Stack in the QwikLabs AWS account with `Upload a template file` option
-- Upload the yaml file you downloaded
-- Enter a name for the stack `CloudNgfwOnboarding`
-- Enter TrustedAccount ID and ExternalID from Cloud NGFW Console
-  - Use `Check Details` on the AWS Accounts section
-- Other Parameters should remain with default values
-- Deploy Stack and ensure it completes successfully
-
-This template will create four different IAM roles that will allow Cloud NGFW service to perform actions inside the customer account.
-
-After Stack creation is complete, we must let Cloud NGFW know the ARN of the cross-account roles that were created.
-- In Cloud NGFW console, Use Actions menus on your AWS account to manage cross account roles
-- The ARNs of the roles can be found on the Outputs section of the CloudFormation Stack
-- Verify Status in Cloud NGFW Console goes to Success
-
-> &#8505; It is not currently possible to modify these role ARN mappings after they are saved. You must delete and re-add the account if there is any mistake.
-
-> &#10067; Which IAM Role(s) are required?
 
 ## 2.9. Deploy AWS Infrastructure and Cloud NGFW Isolated Model
 
@@ -332,6 +334,8 @@ Follow the same process to create some additional saved queries and widgets
 
 
 ## 2.13. Create Block List policy
+
+When working in the Cloud NGFW console, you will need to select the appropriate region. Similar to AWS console. For this lab, you will use Oregon (us-west-2)
 
 In your rulestack, create a common policy to block traffic from PANW Feeds
 
