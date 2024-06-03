@@ -56,7 +56,8 @@ During this session you will:
 - Access Cloud9 AWS IDE environment
 - Create IAM role for programmatic access inside QL AWS account
 - Onboard QL AWS account to existing Cloud NGFW tenant
-- Deploy prepared terraform to create 
+- Deploy prepared terraform to create AWS infrastructure and Cloud NGFW for "isolated model"
+- Create policies through Cloud NGFW native constructs (Console and Terraform)
   
 ## 2.1. Session 1 Topology
 
