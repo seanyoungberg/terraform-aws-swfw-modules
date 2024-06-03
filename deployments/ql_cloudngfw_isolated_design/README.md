@@ -41,6 +41,7 @@ Session 1
   - [2.11. Connect to instances](#211-connect-to-instances)
   - [2.12. Explore CloudWatch Logs](#212-explore-cloudwatch-logs)
   - [2.13. Create Block List policy](#213-create-block-list-policy)
+  - [2.13. Create Block List policy](#213-create-block-list-policy-1)
   - [2.14. Create Outbound Policies for App1 in Cloud NGFW Console](#214-create-outbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.15. Create Inbound Policies for App1 in Cloud NGFW Console](#215-create-inbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
@@ -253,6 +254,7 @@ cp example.tfvars terraform.tfvars
 We will all be sharing the same Cloud NGFW tenant, so need to set a unique name to identify your resources.
 
 - Edit value of `name_prefix` in `terraform.tfvars` to your name or a unique identifier
+- **Use a short name (less than 8 characters) for `name_prefix`. You will have issues creating some resources if the name is too long.**
 - **Make sure to save the change if you edit in the Cloud9 IDE.**
 
 - All other values can stay the same for now
@@ -294,6 +296,7 @@ With the deafult experience, Cloud NGFW takes advantage of AWS Native services. 
 You can browse through each CloudWatch log stream, but this isn't a very powerful or useful way to find data. Let's make some queries and a dashboard to see how to get more relevant information.
 
 - Go to Cloud Watch log insights
+- Select the `PaloAltoCloudNGFW` Log Group
 
 Here is an example of a simple query to identify traffic based on IP:
 
@@ -302,7 +305,7 @@ filter @logStream like /.*TRAFFIC.*/
 | filter src_ip = "10.104.0.161"
 ```
 
-- Create a Query to identify the top 20 inbound source IPs
+- Create and Run a query to identify the top 20 inbound source IPs
 
 ```
 filter @logStream like /.*TRAFFIC.*/ 
@@ -332,6 +335,8 @@ Follow the same process to create some additional saved queries and widgets
 
 > &#10067; How many different Traffic log streams are there? What do these separate streams represent?
 
+## 2.13. Create Block List policy
+![alt](topology.png)
 
 ## 2.13. Create Block List policy
 
