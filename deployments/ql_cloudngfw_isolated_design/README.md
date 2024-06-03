@@ -185,7 +185,7 @@ After Stack creation is complete, we must let Cloud NGFW know the ARN of the cro
 
 - Run below command from Cloud9 terminal. It will:
   - Clone the repository that contains the code and resources for this lab
-  - Execute a shell script to install terraform in the Cloud9 envitonment
+  - Execute a shell script to install terraform in the Cloud9 environment
 
 
 ```
