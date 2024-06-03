@@ -314,7 +314,7 @@ Experiment with the query generator to help refine your filters using natural la
 - In query generator prompt, try something like: "Exclude any private source IPs" and select `Update query`
 - If everything looks right. Save the query. Create a new folder to store your queries
 
-Let's make a dashboard that we can add the queries to.
+Let's make a dashboard that we can add the queries to. We will continue to add to this dashboard throughout the lab.
 
 - CloudWatch -> Dashboards -> Create Dashboard -> Name `CloudNGFW`
 - Add widget type Data Type: `Logs` and Widget type: `Logs Table`
@@ -348,7 +348,7 @@ For now we will create a generic policy so we can use logs to see what kind of o
 - Create prefix lists for App1-vma and App1-vmb subnets
 - Create App1 Outbound policy
   - Priority: 5
-  - Source: App1 subnet prefix lists
+  - Source: App1 VM subnet prefix lists
   - Make sure to enable logging
 
 ## 2.15. Create Inbound Policies for App1 in Cloud NGFW Console
@@ -358,7 +358,8 @@ Create inbound prefix list and rules for App1.
 - Create prefix lists for App1-lb-a and App1-lb-b subnets
 - Create App1 Inbound policy
   - Priority: 10
-  - Source: App1 subnet prefix lists
+  - Source: Any
+  - Destination: App1 LB subnet prefix lists
   - Make sure to enable logging
 
 ## 2.16. Create Policies for App2 with Terraform
