@@ -35,14 +35,15 @@ Session 1
   - [2.5. Check Marketplace Subscriptions](#25-check-marketplace-subscriptions)
   - [2.6. Setup Cloud9 IDE Environment](#26-setup-cloud9-ide-environment)
   - [2.7. Create IAM role for programmatic access](#27-create-iam-role-for-programmatic-access)
-  - [2.10. Manually Onboard Qwiklabs Account](#210-manually-onboard-qwiklabs-account)
-  - [2.11. Deploy AWS Infrastructure and Cloud NGFW Isolated Model](#211-deploy-aws-infrastructure-and-cloud-ngfw-isolated-model)
-  - [2.11. Add permissions for your user](#211-add-permissions-for-your-user)
-  - [Enable CloudWatch Metrics](#enable-cloudwatch-metrics)
-  - [Enable CloudWatch Logs](#enable-cloudwatch-logs)
-  - [2.11. Create Outbound Policies for App1 in Cloud NGFW Console](#211-create-outbound-policies-for-app1-in-cloud-ngfw-console)
-  - [Create Outbound Policies for App2 with terraform](#create-outbound-policies-for-app2-with-terraform)
-  - [C](#c)
+  - [2.8. Manually Onboard Qwiklabs Account](#28-manually-onboard-qwiklabs-account)
+  - [2.9. Deploy AWS Infrastructure and Cloud NGFW Isolated Model](#29-deploy-aws-infrastructure-and-cloud-ngfw-isolated-model)
+  - [2.10. Add permissions for your user](#210-add-permissions-for-your-user)
+  - [2.11. Connect to instances](#211-connect-to-instances)
+  - [2.12. Explore CloudWatch Logs](#212-explore-cloudwatch-logs)
+  - [2.13. Create Block List policy](#213-create-block-list-policy)
+  - [2.14. Create Outbound Policies for App1 in Cloud NGFW Console](#214-create-outbound-policies-for-app1-in-cloud-ngfw-console)
+  - [2.15. Create Inbound Policies for App1 in Cloud NGFW Console](#215-create-inbound-policies-for-app1-in-cloud-ngfw-console)
+  - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
 
 
 
@@ -202,7 +203,7 @@ terraform apply
 
 
 
-## 2.10. Manually Onboard Qwiklabs Account
+## 2.8. Manually Onboard Qwiklabs Account
 
 - Navigate to the [Cloud NGFW web console](https://web.aws.cloudngfw.paloaltonetworks.com/)
 - Authenticate with PANW SSO
@@ -227,7 +228,7 @@ After Stack creation is complete, we must let Cloud NGFW know the ARN of the cro
 
 > &#10067; Which IAM Role(s) are required?
 
-## 2.11. Deploy AWS Infrastructure and Cloud NGFW Isolated Model
+## 2.9. Deploy AWS Infrastructure and Cloud NGFW Isolated Model
 
 During this step, you will deploy a prepared terraform package based on the public module example. It will create the AWS infrastructure as well as utilize the CloudNGFW provider to deploy a Cloud NGFW resource and basic local rulestack.
 
@@ -261,7 +262,7 @@ terraform apply
 
 Deployment will take around 5 minutes and then another 15 minutes before Cloud NGFW resource is ready.
 
-## 2.11. Add permissions for your user
+## 2.10. Add permissions for your user
 
 CloudNGFW creates separate roles for each AWS account. Even if a user has tenant admin, you still must add specific roles to have permissions for RuleStacks and Firewalls per account.
 
@@ -272,20 +273,101 @@ CloudNGFW creates separate roles for each AWS account. Even if a user has tenant
 This must be done for any users that need to manage FW or rulestacks for an account. It is a commonly missed issue and can cause confustion for why users aren't able to do expected tasks in the console.
 
 
-## Enable CloudWatch Metrics
+## 2.11. Connect to instances
+
+The deployment should have taken care of everything needed for initial traffic flows to work for the simple HTTP apps. Validate that you can access your web servers via the ALB DNS name (using HTTP/80).
+
+Validate you can use session manager to connect to the shell of your app servers.
 
 
-## Enable CloudWatch Logs
+## 2.12. Explore CloudWatch Logs
+
+With the deafult experience, Cloud NGFW takes advantage of AWS Native services. Logging can be configured for CloudWatch, S3, or Kinesis. CloudWatch is the most common and typically more familiar.
+
+- Check the Log Settings for your Cloud NGFW
+- Go to CloudWatch Console in AWS and select one of the Traffic Logs
+- Expand to see the formate of the message and the fields that are being logged
+
+You can browse through each CloudWatch log stream, but this isn't a very powerful or useful way to find data. Let's make some queries and a dashboard to see how to get more relevant information.
+
+- Go to Cloud Watch log insights
+
+Here is an example of a simple query to identify traffic based on IP:
+
+```
+filter @logStream like /.*TRAFFIC.*/ 
+| filter src_ip = "10.104.0.161"
+```
+
+- Create a Query to identify the top 20 inbound source IPs
+
+```
+filter @logStream like /.*TRAFFIC.*/ 
+| fields @message 
+| stats count(*) as sources by src_ip 
+| sort sources desc 
+| limit 20
+```
+
+Experiment with the query generator to help refine your filters using natural language
+
+- In query generator prompt, try something like: "Exclude any private source IPs" and select `Update query`
+- If everything looks right. Save the query. Create a new folder to store your queries
+
+Let's make a dashboard that we can add the queries to.
+
+- CloudWatch -> Dashboards -> Create Dashboard -> Name `CloudNGFW`
+- Add widget type Data Type: `Logs` and Widget type: `Logs Table`
+- Select your saved query
+- Make sure to save your Dashboard
+
+Follow the same process to create some additional saved queries and widgets
+
+- Top 10 Inbound source countries (bar chart)
+- Top 10 Outbound App IDs
+- Logs with no bytes received
+
+> &#10067; How many different Traffic log streams are there? What do these separate streams represent?
 
 
+## 2.13. Create Block List policy
 
-## 2.11. Create Outbound Policies for App1 in Cloud NGFW Console
+In your rulestack, create a common policy to block traffic from PANW Feeds
 
-- Prefix List for Source
-- FQDN List for Destination
-- App ID Policy
+- Priority: 1
+- Source: 
+  - Feeds: All built-in PANW threat Feeds
+- All other can be left as `Any`
+- Make sure to enable logging
 
 
-## Create Outbound Policies for App2 with terraform
+## 2.14. Create Outbound Policies for App1 in Cloud NGFW Console
 
-## C
+For now we will create a generic policy so we can use logs to see what kind of outbound policies we will need. We will only target App1 VPC for now.
+
+- Create prefix lists for App1-vma and App1-vmb subnets
+- Create App1 Outbound policy
+  - Priority: 5
+  - Source: App1 subnet prefix lists
+  - Make sure to enable logging
+
+## 2.15. Create Inbound Policies for App1 in Cloud NGFW Console
+
+Create inbound prefix list and rules for App1.
+
+- Create prefix lists for App1-lb-a and App1-lb-b subnets
+- Create App1 Inbound policy
+  - Priority: 10
+  - Source: App1 subnet prefix lists
+  - Make sure to enable logging
+
+## 2.16. Create Policies for App2 with Terraform
+
+Now, we will create the same outbound and inbound rules for App2 using Terraform. This will utilize the Cloud NGFW provider.
+
+Reference the [provider docs](https://registry.terraform.io/providers/PaloAltoNetworks/cloudngfwaws/latest/docs) to create the same objects and policies that were created in the console for App1.
+
+There is an existing starting template `rules.tf.no` in the deployment directory. Rename this to `rules.tf` and in subsequent terraform operations it will be parsed.
+
+You will need to modify it and reference the provider documentation to figure out how to create all of the required resources. Make sure to set a priority for the rules that doesn't overlap with existing rules.
+
