@@ -46,6 +46,7 @@ Session 1
   - [2.16. Create Inbound Policies for App1 in Cloud NGFW Console](#216-create-inbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.17. Create Policies for App2 with Terraform](#217-create-policies-for-app2-with-terraform)
   - [2.18. Setup Secrets manager for outbound decryption](#218-setup-secrets-manager-for-outbound-decryption)
+  - [2.19. Challenge Excercise](#219-challenge-excercise)
   - [2.19. Update Cloud NGFW for Outbound Decryption](#219-update-cloud-ngfw-for-outbound-decryption)
 - [3. Panoram Integration](#3-panoram-integration)
   - [3.1. Deploy Panorama](#31-deploy-panorama)
@@ -53,6 +54,8 @@ Session 1
   - [3.3. Access Panorama](#33-access-panorama)
   - [3.4. Generate OTP for Device Certificate](#34-generate-otp-for-device-certificate)
   - [3.5. Add Panorama to SLS](#35-add-panorama-to-sls)
+  - [3.5. Setup Panorama integraion](#35-setup-panorama-integraion)
+  - [3.5. Panorama Basic Configration](#35-panorama-basic-configration)
 
 
 
@@ -453,6 +456,8 @@ terraform apply
 
 We need to setup the CA Trust store before enabling decryption on the Cloud NGFW since we will be using TLS based commands to retrieve the CA.
 
+Simply adding it to the OS Cert store seems to be enough for some common services. However, many applications and libraries maintain their own CA Trust, so care should be taken when enabling decryption.
+
 ```
 aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
 
@@ -466,6 +471,11 @@ sudo update-ca-trust
 openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
 /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
 ```
+
+##  2.19. Challenge Excercise
+
+As a challenge, try to use AWS Systems Manager to deploy the CA Cert from Secrets Manager to the App2 VMs.
+
 
 ##  2.19. Update Cloud NGFW for Outbound Decryption
 
@@ -551,13 +561,15 @@ We will need to use a unique Serial Number since all will be associated with the
 - Set Serial Number and Hostname
 - Retrieve Licenses
 - Install Dyanmic Updates (App & Antivirus)
+- Set DNS and NTP
 
 ## 3.4. Generate OTP for Device Certificate
+
+![alt text](image-3.png)
 
 - Login to CSP Portal in account 132205
 - [Use One Time Password](https://docs.paloaltonetworks.com/panorama/10-1/panorama-admin/set-up-panorama/install-the-panorama-device-certificate) to retrieve Device Certificate for Panorama
 
-![alt text](image-3.png)
 
 ## 3.5. Add Panorama to SLS
 
@@ -568,3 +580,23 @@ We will need to use a unique Serial Number since all will be associated with the
   - Retreive SLS license
   - Install Cloud Services plugin latest (5.0.0-h33)
   - Generate OTP for Plugin / SLS
+
+- Reboot Panorama if it still doesn't connect to SLS
+
+![alt text](image-8.png)
+
+## 3.5. Setup Panorama integraion
+
+- From Cloud NGFW Console
+- Integrations -> Add Policy Manager
+- Select your Panorama
+
+
+
+![alt text](image-7.png)
+
+
+## 3.5. Panorama Basic Configration
+
+- Log forwarding profile `default`
+- Security Profile group `default`
