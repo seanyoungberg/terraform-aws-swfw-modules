@@ -28,12 +28,12 @@ vpcs = {
           https = {
             description = "Permit HTTPS"
             type        = "ingress", from_port = "443", to_port = "443", protocol = "tcp"
-            cidr_blocks = ["130.41.210.143"] # TODO: update here
+            cidr_blocks = ["130.41.210.143/32"] # TODO: update here
           }
           ssh = {
             description = "Permit SSH"
             type        = "ingress", from_port = "22", to_port = "22", protocol = "tcp"
-            cidr_blocks = ["130.41.210.143"] # TODO: update here
+            cidr_blocks = ["130.41.210.143/32"] # TODO: update here
           }
         }
       }
@@ -67,7 +67,7 @@ panoramas = {
       }
     }
 
-    panorama_ami_id = "ami-0927942a5ff1290e9"
+    panorama_ami_id = "ami-0df8dc0d69bdd0b5b"
     panos_version = "10.1.5" # Not used here since we have custom AMI
 
     network = {
@@ -78,13 +78,7 @@ panoramas = {
     }
 
     ebs = {
-      volumes = [
-        {
-          name            = "ebs-1"
-          ebs_device_name = "/dev/sdb"
-          ebs_size        = "2000"
-        }
-      ]
+      volumes = []
       encrypted     = true
       kms_key_alias = "alias/aws/ebs"
     }
