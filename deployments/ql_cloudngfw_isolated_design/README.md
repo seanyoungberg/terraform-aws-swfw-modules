@@ -467,46 +467,11 @@ In the curl output you should see issuer details matching the CA cert you genera
 ![alt text](image-2.png)
 
 
-openssl base64 -in cngfwCA.pem -out cngfwCA_64.pem
-openssl base64 -in cngfwCACert.pem -out cngfwCACert_64.pem
-
-aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert.pem
-aws secretsmanager create-secret --name cngfw-private-key --secret-string file://cngfwCA.pem
-
-aws secretsmanager tag-resource --secret-id cngfw-private-key --tags Key=PaloAltoCloudNGFW,Value=true
-aws secretsmanager tag-resource --secret-id cngfw-public-key --tags Key=PaloAltoCloudNGFW,Value=true
-
-aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
-
-
-
-- AWS Secrets Manager
-
-
-
-aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
-
-sudo mv /tmp/cloudngfw_ca.pem /etc/pki/ca-trust/source/anchors/
-
-sh-4.2$ openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
-/etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
-
-sudo update-ca-trust
-
-
-
-export AWS_CA_BUNDLE=/etc/pki/tls/certs/panw-ca.pem 
-aws secretsmanager get-secret-value --secret-id cngfw-private-key --query SecretString --region us-west-2 --output text
-sudo update-ca-certificates
-sudo update-ca-trust force-enable
-sudo update-ca-trust extract
-
-
-sudo update-ca-trust extract
-
 ## Deploy Panorama
 
-We will deploy a new Panorama in a separate management VPC. This will be based off a pre-initialized custom image version 
+We will deploy a new Panorama in a separate management VPC. This will be based off a pre-initialized custom image version `11.1.2-h3`.
+
+We will deploy in a separate region `us-west-1` to get around the Qwiklabs 
 
 ```
 cd ~/environment/terraform-aws-swfw-modules/deployments/panorama_standalone
@@ -517,3 +482,5 @@ terraform init
 
 terraform apply
 ```
+
+![alt text](image-4.png)
