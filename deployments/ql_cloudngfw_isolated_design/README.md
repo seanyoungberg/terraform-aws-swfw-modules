@@ -41,18 +41,18 @@ Session 1
   - [2.11. Connect to instances](#211-connect-to-instances)
   - [2.12. Explore CloudWatch Logs](#212-explore-cloudwatch-logs)
   - [2.13. Isolated Topology Details (App1)](#213-isolated-topology-details-app1)
-  - [2.13. Create Block List policy](#213-create-block-list-policy)
-  - [2.14. Create Outbound Policies for App1 in Cloud NGFW Console](#214-create-outbound-policies-for-app1-in-cloud-ngfw-console)
-  - [2.15. Create Inbound Policies for App1 in Cloud NGFW Console](#215-create-inbound-policies-for-app1-in-cloud-ngfw-console)
-  - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
-  - [2.16. Setup Secrets manager for outbound decryption](#216-setup-secrets-manager-for-outbound-decryption)
-  - [Update Cloud NGFW for Outbound Decryption](#update-cloud-ngfw-for-outbound-decryption)
-- [Panoram Integration](#panoram-integration)
-  - [Deploy Panorama](#deploy-panorama)
-  - [Configuration](#configuration)
-  - [Access Panorama](#access-panorama)
-  - [Generate OTP for Device Certificate](#generate-otp-for-device-certificate)
-  - [Add Panorama to SLS](#add-panorama-to-sls)
+  - [2.14. Create Block List policy](#214-create-block-list-policy)
+  - [2.15. Create Outbound Policies for App1 in Cloud NGFW Console](#215-create-outbound-policies-for-app1-in-cloud-ngfw-console)
+  - [2.16. Create Inbound Policies for App1 in Cloud NGFW Console](#216-create-inbound-policies-for-app1-in-cloud-ngfw-console)
+  - [2.17. Create Policies for App2 with Terraform](#217-create-policies-for-app2-with-terraform)
+  - [2.18. Setup Secrets manager for outbound decryption](#218-setup-secrets-manager-for-outbound-decryption)
+  - [2.19. Update Cloud NGFW for Outbound Decryption](#219-update-cloud-ngfw-for-outbound-decryption)
+- [3. Panoram Integration](#3-panoram-integration)
+  - [3.1. Deploy Panorama](#31-deploy-panorama)
+  - [3.2. Configuration](#32-configuration)
+  - [3.3. Access Panorama](#33-access-panorama)
+  - [3.4. Generate OTP for Device Certificate](#34-generate-otp-for-device-certificate)
+  - [3.5. Add Panorama to SLS](#35-add-panorama-to-sls)
 
 
 
@@ -346,7 +346,7 @@ Follow the same process to create some additional saved queries and widgets
 ## 2.13. Isolated Topology Details (App1)
 ![alt](topology.png)
 
-## 2.13. Create Block List policy
+## 2.14. Create Block List policy
 
 When working in the Cloud NGFW console, you will need to select the appropriate region. Similar to AWS console. For this lab, you will use Oregon (us-west-2)
 
@@ -359,7 +359,7 @@ In your rulestack, create a common policy to block traffic from PANW Feeds
 - Make sure to enable logging
 
 
-## 2.14. Create Outbound Policies for App1 in Cloud NGFW Console
+## 2.15. Create Outbound Policies for App1 in Cloud NGFW Console
 
 For now we will create a generic policy so we can use logs to see what kind of outbound policies we will need. We will only target App1 VPC for now.
 
@@ -369,7 +369,7 @@ For now we will create a generic policy so we can use logs to see what kind of o
   - Source: App1 VM subnet prefix lists
   - Make sure to enable logging
 
-## 2.15. Create Inbound Policies for App1 in Cloud NGFW Console
+## 2.16. Create Inbound Policies for App1 in Cloud NGFW Console
 
 Create inbound prefix list and rules for App1.
 
@@ -380,7 +380,7 @@ Create inbound prefix list and rules for App1.
   - Destination: App1 LB subnet prefix lists
   - Make sure to enable logging
 
-## 2.16. Create Policies for App2 with Terraform
+## 2.17. Create Policies for App2 with Terraform
 
 Now, we will create the same outbound and inbound rules for App2 using Terraform. This will utilize the Cloud NGFW provider.
 
@@ -390,9 +390,16 @@ There is an existing starting template `rules.tf.no` in the deployment directory
 
 You will need to modify it and reference the provider documentation to figure out how to create all of the required resources. Make sure to set a priority for the rules that doesn't overlap with existing rules.
 
-## 2.16. Setup Secrets manager for outbound decryption
+## 2.18. Setup Secrets manager for outbound decryption
 
 Decryption is critical to be able to bring full value from Cloud NGFW inspection but it comes with many challenges. In this section, we will test setting up the native integration with AWS Secrets Manager to store CA Certs.
+
+- From Cloud9 Environment, make sure you have the latest code updates
+
+```
+cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design 
+git pull
+```
 
 - Use Cloud9 Environment to generate CA private key 
 
@@ -416,7 +423,7 @@ This will be used by other client systems to be able to retreive the public key 
 aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert.pem
 ```
 
-- Use AWS Console to create the secret
+- Use AWS Console to create the secret used by Cloud NGFW
 
 The secret must be in a specific format for Cloud NGFW to consume it as described in the [TechDocs](https://docs.paloaltonetworks.com/cloud-ngfw/aws/cloud-ngfw-on-aws/rules-and-rulestacks/cloud-ngfw-security-rule-objects/add-a-certificate-to-cloud-ngfw-for-aws).
 
@@ -434,6 +441,13 @@ The secret must be in a specific format for Cloud NGFW to consume it as describe
 ![alt text](image-1.png)
 
 - Update IAM roles to allow spoke instances to interact with secrets manager
+
+Changes for this were prepped in the terraform. We will provide additional policy to the Spoke IAM instance profile
+
+```
+cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design 
+terraform apply
+```
 
 - Download CA Cert on app1_vm01 and app1_vm02
 
@@ -453,9 +467,34 @@ openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
 /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
 ```
 
-##  Update Cloud NGFW for Outbound Decryption
+##  2.19. Update Cloud NGFW for Outbound Decryption
 
-- Create 
+- Create Certificate Profile
+
+In Cloud NGFW Profile:
+
+Rulestack -> Objects -> Certicates
+Do NOT check "Self Signed Certificate"
+
+![alt text](image-5.png)
+
+- Update App1 Security Policy to TLS Decryption
+
+If you are using Terraform, you can this under profile_config
+
+```
+    profile_config = {
+      anti_spyware  = "BestPractice"
+      anti_virus    = "BestPractice"
+      vulnerability = "BestPractice"
+      file_blocking = "BestPractice"
+      url_filtering = "BestPractice"
+      outbound_trust_certificate = "ca-secrets-manager"
+      outbound_untrust_certificate = "ca-secrets-manager"
+    }
+```
+
+![alt text](image-6.png)
 
 - Generate some traffic to verify TLS services are still working
 
@@ -471,9 +510,9 @@ In the curl output you should see issuer details matching the CA cert you genera
 
 ![alt text](image-2.png)
 
-# Panoram Integration
+# 3. Panoram Integration
 
-## Deploy Panorama
+## 3.1. Deploy Panorama
 
 We will deploy a new Panorama in a separate management VPC. We will deploy in a separate region `us-west-1` to get around the Qwiklabs limits on CPUs per region.
 
@@ -489,7 +528,7 @@ terraform init
 terraform apply
 ```
 
-## Configuration
+## 3.2. Configuration
 
 - Get public IP for each Panorama instance(s): `terraform output panorama_public_ips`
 - Download the SSH Key from the QwikLabs console (pem or ppk)
@@ -503,7 +542,7 @@ terraform apply
 # set mgt-config users admin password
 ```
 
-## Access Panorama
+## 3.3. Access Panorama
 
 Use a web browser to access https://x.x.x.x and login with admin and your previously configured password
 
@@ -513,14 +552,14 @@ We will need to use a unique Serial Number since all will be associated with the
 - Retrieve Licenses
 - Install Dyanmic Updates (App & Antivirus)
 
-## Generate OTP for Device Certificate
+## 3.4. Generate OTP for Device Certificate
 
 - Login to CSP Portal in account 132205
 - [Use One Time Password](https://docs.paloaltonetworks.com/panorama/10-1/panorama-admin/set-up-panorama/install-the-panorama-device-certificate) to retrieve Device Certificate for Panorama
 
 ![alt text](image-3.png)
 
-## Add Panorama to SLS
+## 3.5. Add Panorama to SLS
 
 - Access SLS through the Hub and access [TSG 1529801457](https://logging-service.apps.paloaltonetworks.com/dashboard?instance=QP5rGlV5JDheGLpL0alPcrW1pBXWVMHol4yyeppxTWmkM5oOl3hQyeGw2OBX&tsg_id=1529801457)
 
