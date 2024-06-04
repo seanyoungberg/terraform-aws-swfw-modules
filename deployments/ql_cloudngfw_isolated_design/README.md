@@ -47,6 +47,7 @@ Session 1
   - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
   - [2.16. Setup Secrets manager for outbound decryption](#216-setup-secrets-manager-for-outbound-decryption)
   - [Update Cloud NGFW for Outbound Decryption](#update-cloud-ngfw-for-outbound-decryption)
+  - [Deploy Panorama](#deploy-panorama)
 
 
 
@@ -502,3 +503,17 @@ sudo update-ca-trust extract
 
 
 sudo update-ca-trust extract
+
+## Deploy Panorama
+
+We will deploy a new Panorama in a separate management VPC. This will be based off a pre-initialized custom image version 
+
+```
+cd ~/environment/terraform-aws-swfw-modules/deployments/panorama_standalone
+
+cp example.tfvars terraform.tfvars
+
+terraform init
+
+terraform apply
+```

@@ -1,5 +1,5 @@
 ### General
-region      = "us-west-2" # TODO: update here
+region      = "us-west-1" # TODO: update here
 name_prefix = "cngfw-"  # TODO: update here
 
 global_tags = {
@@ -28,20 +28,20 @@ vpcs = {
           https = {
             description = "Permit HTTPS"
             type        = "ingress", from_port = "443", to_port = "443", protocol = "tcp"
-            cidr_blocks = ["130.41.247.0/24"] # TODO: update here
+            cidr_blocks = ["130.41.210.143"] # TODO: update here
           }
           ssh = {
             description = "Permit SSH"
             type        = "ingress", from_port = "22", to_port = "22", protocol = "tcp"
-            cidr_blocks = ["130.41.247.0/24"] # TODO: update here
+            cidr_blocks = ["130.41.210.143"] # TODO: update here
           }
         }
       }
     }
     subnets = {
       # Do not modify value of `set=`, it is an internal identifier referenced by main.tf
-      "10.255.0.0/24" = { az = "us-west-2a", set = "mgmt" }
-      "10.255.1.0/24" = { az = "us-west-2b", set = "mgmt" }
+      "10.255.0.0/24" = { az = "us-west-1a", set = "mgmt" }
+      "10.255.1.0/24" = { az = "us-west-1b", set = "mgmt" }
     }
     routes = {
       # Value of `vpc_subnet` is built from key of VPCs concatenate with `-` and key of subnet in format: `VPCKEY-SUBNETKEY`
@@ -59,15 +59,16 @@ vpcs = {
 
 ### PANORAMA instances
 panoramas = {
-  panorama_ha_pair = {
+  panorama_standalone = {
     instances = {
       "primary" = {
-        az                 = "us-west-2a"
+        az                 = "us-west-1a"
         private_ip_address = "10.255.0.4"
       }
     }
 
     panorama_ami_id = "ami-0927942a5ff1290e9"
+    panos_version = "10.1.5" # Not used here since we have custom AMI
 
     network = {
       vpc              = "management_vpc"
