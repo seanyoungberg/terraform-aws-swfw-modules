@@ -68,7 +68,7 @@ panoramas = {
     }
 
     panorama_ami_id = "ami-0df8dc0d69bdd0b5b"
-    panos_version = "10.1.5" # Not used here since we have custom AMI
+    panos_version = "11.2.0"
 
     network = {
       vpc              = "management_vpc"
@@ -78,9 +78,17 @@ panoramas = {
     }
 
     ebs = {
-      volumes = []
+      volumes = [
+        {
+          name            = "ebs-1"
+          ebs_device_name = "/dev/sdb"
+          ebs_size        = "2000"
+        }
+      ]
       encrypted     = true
       kms_key_alias = "alias/aws/ebs"
+    }
+
     }
 
     iam = {

@@ -483,4 +483,18 @@ terraform init
 terraform apply
 ```
 
+We will need to use a unique Serial Number since all will be associated with the same Hub Tenant and Cloud NGFW Tenant.
+
+This pre-provisioned Panorama image had a log collector configured that you will need to delete before changing SN.
+
+- Delete Collector Group
+- Delete Managed Collector
+- Commit
+- Update Panorama to use a unique SN
+  - See lab instructor for your unique SN
+- If you still get an error related to the collector group, you will need to reboot your Panorama
+
 ![alt text](image-4.png)
+
+- Use One Time Password to retrieve Device Certificate for Panorama
+- Use CSP account 132205

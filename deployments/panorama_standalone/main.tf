@@ -168,7 +168,7 @@ module "panorama" {
   private_ip_address     = each.value.private_ip_address
   ebs_volumes            = each.value.common.ebs.volumes
   ebs_encrypted          = each.value.common.ebs.encrypted
-  panorama_ami_id        = each.value.common.panorama_ami_id
+  #panorama_ami_id        = each.value.common.panorama_ami_id
   panorama_version       = each.value.common.panos_version
   ssh_key_name           = data.aws_key_pair.qwiklabs.key_name
   ebs_kms_key_alias      = each.value.common.ebs.kms_key_alias
