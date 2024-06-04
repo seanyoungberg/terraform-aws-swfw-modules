@@ -180,6 +180,7 @@ variable "panoramas" {
       private_ip_address = string
     }))
 
+    panorama_ami_id = string
     panos_version = string
 
     network = object({
