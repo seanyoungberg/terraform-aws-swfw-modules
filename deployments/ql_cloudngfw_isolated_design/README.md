@@ -40,11 +40,13 @@ Session 1
   - [2.10. Add permissions for your user](#210-add-permissions-for-your-user)
   - [2.11. Connect to instances](#211-connect-to-instances)
   - [2.12. Explore CloudWatch Logs](#212-explore-cloudwatch-logs)
+  - [2.13. Isolated Topology Details (App1)](#213-isolated-topology-details-app1)
   - [2.13. Create Block List policy](#213-create-block-list-policy)
-  - [2.13. Create Block List policy](#213-create-block-list-policy-1)
   - [2.14. Create Outbound Policies for App1 in Cloud NGFW Console](#214-create-outbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.15. Create Inbound Policies for App1 in Cloud NGFW Console](#215-create-inbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
+  - [2.16. Setup Secrets manager for outbound decryption](#216-setup-secrets-manager-for-outbound-decryption)
+  - [Update Cloud NGFW for Outbound Decryption](#update-cloud-ngfw-for-outbound-decryption)
 
 
 
@@ -335,7 +337,7 @@ Follow the same process to create some additional saved queries and widgets
 
 > &#10067; How many different Traffic log streams are there? What do these separate streams represent?
 
-## 2.13. Create Block List policy
+## 2.13. Isolated Topology Details (App1)
 ![alt](topology.png)
 
 ## 2.13. Create Block List policy
@@ -382,3 +384,121 @@ There is an existing starting template `rules.tf.no` in the deployment directory
 
 You will need to modify it and reference the provider documentation to figure out how to create all of the required resources. Make sure to set a priority for the rules that doesn't overlap with existing rules.
 
+## 2.16. Setup Secrets manager for outbound decryption
+
+Decryption is critical to be able to bring full value from Cloud NGFW inspection but it comes with many challenges. In this section, we will test setting up the native integration with AWS Secrets Manager to store CA Certs.
+
+- Use Cloud9 Environment to generate CA private key 
+
+```
+openssl genrsa -out cngfwCA.pem 2048
+```
+
+- Use the same key to create a certificate
+
+```
+openssl req -x509 -sha256 -new -nodes -key cngfwCA.pem -days 3650 -out cngfwCACert.pem
+```
+
+You can leave fields as default / blank
+
+- Use AWS CLI to creat a secret containing only the public key
+
+This will be used by other client systems to be able to retreive the public key and add it to the trust store.
+
+```
+aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert.pem
+```
+
+- Use AWS Console to create the secret
+
+The secret must be in a specific format for Cloud NGFW to consume it as described in the [TechDocs](https://docs.paloaltonetworks.com/cloud-ngfw/aws/cloud-ngfw-on-aws/rules-and-rulestacks/cloud-ngfw-security-rule-objects/add-a-certificate-to-cloud-ngfw-for-aws).
+
+- Open up secret manager under AWS to store new secret
+  - Other type of secret > enter private key and certificate created
+
+- Give it a name `cloudngfwca`
+- IMPORTANT: The secret must be tagged to allow Cloud NGFW service to retrieve it
+  - Key: PaloAltoCloudNGFW
+  - Value: true
+
+![alt text](image.png)
+
+
+![alt text](image-1.png)
+
+- Update IAM roles to allow spoke instances to interact with secrets manager
+
+- Download CA Cert on app1_vm01 and app1_vm02
+
+We need to setup the CA Trust store before enabling decryption on the Cloud NGFW since we will be using TLS based commands to retrieve the CA.
+
+```
+aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
+
+sudo mv /tmp/cloudngfw_ca.pem /etc/pki/ca-trust/source/anchors/
+
+sudo update-ca-trust
+```
+
+- Verify Cert
+```
+openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
+/etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
+```
+
+##  Update Cloud NGFW for Outbound Decryption
+
+- Create 
+
+- Generate some traffic to verify TLS services are still working
+
+```
+sudo yum install git
+
+aws sts get-caller-identity
+
+curl -v https://ifconfig.me
+```
+
+In the curl output you should see issuer details matching the CA cert you generated. 
+
+![alt text](image-2.png)
+
+
+openssl base64 -in cngfwCA.pem -out cngfwCA_64.pem
+openssl base64 -in cngfwCACert.pem -out cngfwCACert_64.pem
+
+aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert.pem
+aws secretsmanager create-secret --name cngfw-private-key --secret-string file://cngfwCA.pem
+
+aws secretsmanager tag-resource --secret-id cngfw-private-key --tags Key=PaloAltoCloudNGFW,Value=true
+aws secretsmanager tag-resource --secret-id cngfw-public-key --tags Key=PaloAltoCloudNGFW,Value=true
+
+aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
+
+
+
+- AWS Secrets Manager
+
+
+
+aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
+
+sudo mv /tmp/cloudngfw_ca.pem /etc/pki/ca-trust/source/anchors/
+
+sh-4.2$ openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
+/etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
+
+sudo update-ca-trust
+
+
+
+export AWS_CA_BUNDLE=/etc/pki/tls/certs/panw-ca.pem 
+aws secretsmanager get-secret-value --secret-id cngfw-private-key --query SecretString --region us-west-2 --output text
+sudo update-ca-certificates
+sudo update-ca-trust force-enable
+sudo update-ca-trust extract
+
+
+sudo update-ca-trust extract
