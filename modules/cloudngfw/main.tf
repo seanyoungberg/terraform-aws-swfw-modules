@@ -38,6 +38,8 @@ resource "cloudngfwaws_rulestack" "this" {
   description = var.description_rule
 
   profile_config {
+    outbound_trust_certificate = try(var.profile_config["outbound_trust_certificate"], null)
+    outbound_untrust_certificate = try(var.profile_config["outbound_untrust_certificate"], null)
     anti_spyware  = try(var.profile_config["anti_spyware"], null)
     anti_virus    = try(var.profile_config["anti_virus"], null)
     vulnerability = try(var.profile_config["vulnerability"], null)
