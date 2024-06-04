@@ -46,16 +46,21 @@ Session 1
   - [2.16. Create Inbound Policies for App1 in Cloud NGFW Console](#216-create-inbound-policies-for-app1-in-cloud-ngfw-console)
   - [2.17. Create Policies for App2 with Terraform](#217-create-policies-for-app2-with-terraform)
   - [2.18. Setup Secrets manager for outbound decryption](#218-setup-secrets-manager-for-outbound-decryption)
-  - [2.19. Challenge Excercise](#219-challenge-excercise)
-  - [2.19. Update Cloud NGFW for Outbound Decryption](#219-update-cloud-ngfw-for-outbound-decryption)
+    - [2.18.1. Generate private key](#2181-generate-private-key)
+  - [2.19. Setup Secrets manager for outbound decryption](#219-setup-secrets-manager-for-outbound-decryption)
+  - [2.20. Setup Secrets manager for outbound decryption](#220-setup-secrets-manager-for-outbound-decryption)
+  - [2.21. Challenge Excercise](#221-challenge-excercise)
+  - [2.22. Update Cloud NGFW for Outbound Decryption](#222-update-cloud-ngfw-for-outbound-decryption)
 - [3. Panoram Integration](#3-panoram-integration)
   - [3.1. Deploy Panorama](#31-deploy-panorama)
   - [3.2. Configuration](#32-configuration)
   - [3.3. Access Panorama](#33-access-panorama)
   - [3.4. Generate OTP for Device Certificate](#34-generate-otp-for-device-certificate)
-  - [3.5. Add Panorama to SLS](#35-add-panorama-to-sls)
-  - [3.5. Setup Panorama integraion](#35-setup-panorama-integraion)
-  - [3.5. Panorama Basic Configration](#35-panorama-basic-configration)
+  - [3.5. Add Panorama to Strata Logging Service](#35-add-panorama-to-strata-logging-service)
+  - [3.6. Setup Panorama integraion](#36-setup-panorama-integraion)
+  - [3.7. Panorama Plugin Setup](#37-panorama-plugin-setup)
+  - [3.8. Panorama Basic Configration](#38-panorama-basic-configration)
+  - [3.9. Setup Device Monitoring](#39-setup-device-monitoring)
 
 
 
@@ -404,16 +409,18 @@ cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_de
 git pull
 ```
 
+### 2.18.1. Generate private key
+
 - Use Cloud9 Environment to generate CA private key 
 
 ```
-openssl genrsa -out cngfwCA.pem 2048
+openssl genrsa -out cngfwCA-untrust-private-key.pem 2048
 ```
 
 - Use the same key to create a certificate
 
 ```
-openssl req -x509 -sha256 -new -nodes -key cngfwCA.pem -days 3650 -out cngfwCACert.pem
+openssl req -x509 -sha256 -new -nodes -key cngfwCA.pem -days 3650 -out cngfwCACert-untrust-public-key.pem
 ```
 
 You can leave fields as default / blank
@@ -423,7 +430,7 @@ You can leave fields as default / blank
 This will be used by other client systems to be able to retreive the public key and add it to the trust store.
 
 ```
-aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert.pem
+aws secretsmanager create-secret --name cngfw-public-key --secret-string file://cngfwCACert-untrust-public-key.pem
 ```
 
 - Use AWS Console to create the secret used by Cloud NGFW
@@ -433,7 +440,7 @@ The secret must be in a specific format for Cloud NGFW to consume it as describe
 - Open up secret manager under AWS to store new secret
   - Other type of secret > enter private key and certificate created
 
-- Give it a name `cloudngfwca`
+- Give it a name `cloudngfwca-untrust`
 - IMPORTANT: The secret must be tagged to allow Cloud NGFW service to retrieve it
   - Key: PaloAltoCloudNGFW
   - Value: true
@@ -447,16 +454,23 @@ The secret must be in a specific format for Cloud NGFW to consume it as describe
 
 Changes for this were prepped in the terraform. We will provide additional policy to the Spoke IAM instance profile
 
+## 2.19. Setup Secrets manager for outbound decryption
+
+
 ```
 cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design 
 terraform apply
 ```
 
-- Download CA Cert on app1_vm01 and app1_vm02
+## 2.20. Setup Secrets manager for outbound decryption
+
+- Install CA Certs on app1_vm01 and app1_vm02
 
 We need to setup the CA Trust store before enabling decryption on the Cloud NGFW since we will be using TLS based commands to retrieve the CA.
 
 Simply adding it to the OS Cert store seems to be enough for some common services. However, many applications and libraries maintain their own CA Trust, so care should be taken when enabling decryption.
+
+Connect via Systems Manager to app1_vm01 and app1_vm02
 
 ```
 aws secretsmanager get-secret-value --secret-id cngfw-public-key --query SecretString --region us-west-2 --output text > /tmp/cloudngfw_ca.pem
@@ -472,12 +486,12 @@ openssl verify /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem
 /etc/pki/ca-trust/source/anchors/cloudngfw_ca.pem: OK
 ```
 
-##  2.19. Challenge Excercise
+##  2.21. Challenge Excercise
 
 As a challenge, try to use AWS Systems Manager to deploy the CA Cert from Secrets Manager to the App2 VMs.
 
 
-##  2.19. Update Cloud NGFW for Outbound Decryption
+##  2.22. Update Cloud NGFW for Outbound Decryption
 
 - Create Certificate Profile
 
@@ -563,15 +577,15 @@ We will need to use a unique Serial Number since all will be associated with the
 - Install Dyanmic Updates (App & Antivirus)
 - Set DNS and NTP
 
-## 3.4. Generate OTP for Device Certificate
+![alt text](image-3.png
 
-![alt text](image-3.png)
+## 3.4. Generate OTP for Device Certificate
 
 - Login to CSP Portal in account 132205
 - [Use One Time Password](https://docs.paloaltonetworks.com/panorama/10-1/panorama-admin/set-up-panorama/install-the-panorama-device-certificate) to retrieve Device Certificate for Panorama
 
 
-## 3.5. Add Panorama to SLS
+## 3.5. Add Panorama to Strata Logging Service
 
 - Access SLS through the Hub and access [TSG 1529801457](https://logging-service.apps.paloaltonetworks.com/dashboard?instance=QP5rGlV5JDheGLpL0alPcrW1pBXWVMHol4yyeppxTWmkM5oOl3hQyeGw2OBX&tsg_id=1529801457)
 
@@ -585,18 +599,65 @@ We will need to use a unique Serial Number since all will be associated with the
 
 ![alt text](image-8.png)
 
-## 3.5. Setup Panorama integraion
+## 3.6. Setup Panorama integraion
+
+[TechDocs Link](https://docs.paloaltonetworks.com/cloud-ngfw/aws/cloud-ngfw-on-aws/panorama-integration-overview/cloud-ngfw-aws-panorama-integration/associate-a-linked-panorama-to-the-cloud-ngfw-resource)
 
 - From Cloud NGFW Console
 - Integrations -> Add Policy Manager
-- Select your Panorama
-
-
+- Select your Panorama and confirm the integration
+- Locate your NGFW in the Cloud NGFW console
+- Select the Firewall Settings tab
+- In the Policy Management Section change Rulestack to "None"
+- After saving, you can no change the policy management to Panorama and select your linked Panorama
 
 ![alt text](image-7.png)
 
+## 3.7. Panorama Plugin Setup
 
-## 3.5. Panorama Basic Configration
+- Review the [prerequistes for Panorama Integration](https://docs.paloaltonetworks.com/cloud-ngfw/aws/cloud-ngfw-on-aws/panorama-integration-overview/cloud-ngfw-aws-panorama-integration/prepare-for-panorama-integration)
+
+- Install latest AWS Plugin on Panorama
+
+- After installation, run following CLI command on Panroama
+
+```
+request plugins cloudconnector enable cloudngfw
+```
+
+- From Panorama AWS Plugin Menus:
+
+- Check Panorama -> Cloud NGFW -> Resources and verify it is retreiving Cloud NGFW tenant info.
+
+- Create a Cloud Device Group
+  - Use the inline menu to create a new template stack
+  - Name the DG something unique, as this will be displayed in the Cloud NGFW console
+
+![alt text](image-13.png)
+
+**Note I ran into a bug here and couldn't commit after creating Cloud Device Group. Please speak up if you have the same issue**
+
+- Commit to Panorama
+
+- Push to Cloud NGFW
+  - You will need to manually select the Push Scope
+
+![alt text](image-14.png)
+
+
+## 3.8. Panorama Basic Configration
 
 - Log forwarding profile `default`
 - Security Profile group `default`
+- Create policy for outbound traffic
+
+## 3.9. Setup Device Monitoring
+
+
+![alt text](image-9.png)
+
+![alt text](image-10.png)
+
+![alt text](image-11.png)
+
+![alt text](image-12.png)
