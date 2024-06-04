@@ -546,7 +546,26 @@ We will have to deploy an entirely fresh Panorama. There are issues connect to C
 cd ~/environment/terraform-aws-swfw-modules/deployments/panorama_standalone
 
 cp example.tfvars terraform.tfvars
+```
 
+- Update terraform.tfvars to reference your client source IP for use in the AWS Security groups that allow inbound access to Panorama
+
+```
+          https = {
+            description = "Permit HTTPS"
+            type        = "ingress", from_port = "443", to_port = "443", protocol = "tcp"
+            cidr_blocks = ["130.41.210.143/32"] # TODO: update here
+          }
+          ssh = {
+            description = "Permit SSH"
+            type        = "ingress", from_port = "22", to_port = "22", protocol = "tcp"
+            cidr_blocks = ["130.41.210.143/32"] # TODO: update here
+          }
+```
+
+- Deploy infrastructure
+
+```
 terraform init
 
 terraform apply
