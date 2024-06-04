@@ -47,7 +47,12 @@ Session 1
   - [2.16. Create Policies for App2 with Terraform](#216-create-policies-for-app2-with-terraform)
   - [2.16. Setup Secrets manager for outbound decryption](#216-setup-secrets-manager-for-outbound-decryption)
   - [Update Cloud NGFW for Outbound Decryption](#update-cloud-ngfw-for-outbound-decryption)
+- [Panoram Integration](#panoram-integration)
   - [Deploy Panorama](#deploy-panorama)
+  - [Configuration](#configuration)
+  - [Access Panorama](#access-panorama)
+  - [Generate OTP for Device Certificate](#generate-otp-for-device-certificate)
+  - [Add Panorama to SLS](#add-panorama-to-sls)
 
 
 
@@ -466,12 +471,13 @@ In the curl output you should see issuer details matching the CA cert you genera
 
 ![alt text](image-2.png)
 
+# Panoram Integration
 
 ## Deploy Panorama
 
-We will deploy a new Panorama in a separate management VPC. This will be based off a pre-initialized custom image version `11.1.2-h3`.
+We will deploy a new Panorama in a separate management VPC. We will deploy in a separate region `us-west-1` to get around the Qwiklabs limits on CPUs per region.
 
-We will deploy in a separate region `us-west-1` to get around the Qwiklabs 
+We will have to deploy an entirely fresh Panorama. There are issues connect to CDL with a Panorama cloned from a disk image.
 
 ```
 cd ~/environment/terraform-aws-swfw-modules/deployments/panorama_standalone
@@ -483,18 +489,43 @@ terraform init
 terraform apply
 ```
 
+## Configuration
+
+- Get public IP for each Panorama instance(s): `terraform output panorama_public_ips`
+- Download the SSH Key from the QwikLabs console (pem or ppk)
+- For pem you will likely need to change the permissions
+  - `chmod 400 qiwkLABS-xxxxxxx.pem`
+- Connect to the Panorama instance(s) via SSH using your associated private key: `ssh admin@x.x.x.x -i /PATH/TO/YOUR/KEY/qiwkLABS-xxxxxxx.pem`
+- Set `admin` password:
+
+```
+> configure
+# set mgt-config users admin password
+```
+
+## Access Panorama
+
+Use a web browser to access https://x.x.x.x and login with admin and your previously configured password
+
 We will need to use a unique Serial Number since all will be associated with the same Hub Tenant and Cloud NGFW Tenant.
 
-This pre-provisioned Panorama image had a log collector configured that you will need to delete before changing SN.
+- Set Serial Number and Hostname
+- Retrieve Licenses
+- Install Dyanmic Updates (App & Antivirus)
 
-- Delete Collector Group
-- Delete Managed Collector
-- Commit
-- Update Panorama to use a unique SN
-  - See lab instructor for your unique SN
-- If you still get an error related to the collector group, you will need to reboot your Panorama
+## Generate OTP for Device Certificate
 
-![alt text](image-4.png)
+- Login to CSP Portal in account 132205
+- [Use One Time Password](https://docs.paloaltonetworks.com/panorama/10-1/panorama-admin/set-up-panorama/install-the-panorama-device-certificate) to retrieve Device Certificate for Panorama
 
-- Use One Time Password to retrieve Device Certificate for Panorama
-- Use CSP account 132205
+![alt text](image-3.png)
+
+## Add Panorama to SLS
+
+- Access SLS through the Hub and access [TSG 1529801457](https://logging-service.apps.paloaltonetworks.com/dashboard?instance=QP5rGlV5JDheGLpL0alPcrW1pBXWVMHol4yyeppxTWmkM5oOl3hQyeGw2OBX&tsg_id=1529801457)
+
+- Follow the [TechDocs](https://docs.paloaltonetworks.com/strata-logging-service/administration/planning/deploy-with-panorama/configure-panorama#configure-later) starting on Step 4 to:
+  - Associate Panorama with SLS
+  - Retreive SLS license
+  - Install Cloud Services plugin latest (5.0.0-h33)
+  - Generate OTP for Plugin / SLS

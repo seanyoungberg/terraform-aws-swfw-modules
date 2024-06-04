@@ -89,8 +89,6 @@ panoramas = {
       kms_key_alias = "alias/aws/ebs"
     }
 
-    }
-
     iam = {
       create_role = true
       role_name   = "panorama"
