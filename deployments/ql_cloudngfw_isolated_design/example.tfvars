@@ -82,6 +82,7 @@ vpcs = {
       }
     }
   }
+  
   app1_vpc = {
     name  = "app1-spoke-vpc"
     cidr  = "10.104.0.0/16"
@@ -184,7 +185,7 @@ vpcs = {
         vpc_subnet    = "app1_vpc-app1_vm"
         to_cidr       = "0.0.0.0/0"
         next_hop_key  = "app1"
-        next_hop_type = "transit_gateway"
+        next_hop_type = "transit_gateway_attachment"
       }
       gwlbe1_default = {
         vpc_subnet    = "app1_vpc-app1_gwlbe2"
@@ -296,7 +297,7 @@ vpcs = {
         vpc_subnet    = "app2_vpc-app2_vm"
         to_cidr       = "0.0.0.0/0"
         next_hop_key  = "app2"
-        next_hop_type = "transit_gateway"
+        next_hop_type = "transit_gateway_attachment"
       }
       gwlbe2_default = {
         vpc_subnet    = "app2_vpc-app2_gwlbe2"
