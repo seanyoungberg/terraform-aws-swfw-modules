@@ -61,6 +61,7 @@ Session 1
   - [3.7. Panorama Plugin Setup](#37-panorama-plugin-setup)
   - [3.8. Panorama Basic Configration](#38-panorama-basic-configration)
   - [3.9. Setup Device Monitoring](#39-setup-device-monitoring)
+- [3.9. SCM Integration](#39-scm-integration)
 
 
 
@@ -680,3 +681,21 @@ request plugins cloudconnector enable cloudngfw
 ![alt text](image-11.png)
 
 ![alt text](image-12.png)
+
+
+# 3.9. SCM Integration
+
+SCM Integration was recently launched for GA!
+
+Reference the instructions from the [NPI Deck](https://docs.google.com/presentation/d/1Dn8AluVmJdulxH4sG5SPSSXAEWNrVYFsFt9T0Ussh8U/edit#slide=id.g6e50fccc39_0_1) and [TechDocs](https://docs.paloaltonetworks.com/cloud-ngfw/aws/cloud-ngfw-on-aws/strata-cloud-manager-policy-management) to expirement with the soltuion
+
+The Cloud NGFW console should display any TSGs that you have access to. However, there is an issue with the linking between the CSP and our TSG in our environment.
+
+Instead we will use my SE Lab TSG. Note you can also use any other TSG that you have access to which has SCM Firewall Management enabled.
+
+- If you have another tenant with SCM access. Create a new link in Cloud NGFW console to it
+- Otherwise, inspect the existing Integration link to "Sean Youngberg - SE Lab - Prisma Access"
+- Use the Cloud NGFW Console to create a new NGFW resource in the `us-west-2` region
+- [Open SCM](https://apps.paloaltonetworks.com/hub?tsg_id=1561638640) for TSG 1561638640
+- Create a new folder and associate your Cloug NGFW
+- Create objects and policies to prepare for outbound and east/west traffic from App1 and App2 environments
