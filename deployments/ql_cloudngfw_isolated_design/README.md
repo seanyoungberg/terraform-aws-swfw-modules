@@ -61,7 +61,7 @@ Session 1
   - [3.7. Panorama Plugin Setup](#37-panorama-plugin-setup)
   - [3.8. Panorama Basic Configration](#38-panorama-basic-configration)
   - [3.9. Setup Device Monitoring](#39-setup-device-monitoring)
-- [3.9. SCM Integration](#39-scm-integration)
+- [4. SCM Integration](#4-scm-integration)
 
 
 
@@ -683,7 +683,7 @@ request plugins cloudconnector enable cloudngfw
 ![alt text](image-12.png)
 
 
-# 3.9. SCM Integration
+# 4. SCM Integration
 
 SCM Integration was recently launched for GA!
 
