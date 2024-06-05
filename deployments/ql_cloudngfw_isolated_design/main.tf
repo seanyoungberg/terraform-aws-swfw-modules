@@ -78,13 +78,16 @@ locals {
         next_hop_set = (
           rv.next_hop_type == "internet_gateway" ? module.vpc[rv.next_hop_key].igw_as_next_hop_set : (
             rv.next_hop_type == "nat_gateway" ? module.natgw_set[rv.next_hop_key].next_hop_set : (
-              rv.next_hop_type == "gwlbe_endpoint" ? module.gwlbe_endpoint[rv.next_hop_key].next_hop_set : null
+              rv.next_hop_type == "transit_gateway_attachment" ? module.transit_gateway_attachment[rv.next_hop_key].next_hop_set : (
+                rv.next_hop_type == "gwlbe_endpoint" ? module.gwlbe_endpoint[rv.next_hop_key].next_hop_set : null
+              )
             )
           )
         )
       }
     ]
   ]))
+  #vmseries_instances = flatten([for kv, vv in var.vmseries : [for ki, vi in vv.instances : { group = kv, instance = ki, az = vi.az, common = vv }]])
 }
 
 module "vpc_routes" {
@@ -96,6 +99,47 @@ module "vpc_routes" {
   next_hop_set    = each.value.next_hop_set
 }
 
+### TGW ###
+module "transit_gateway" {
+  source = "../../modules/transit_gateway"
+
+  create       = var.tgw.create
+  id           = var.tgw.id
+  name         = "${var.name_prefix}${var.tgw.name}"
+  asn          = var.tgw.asn
+  route_tables = var.tgw.route_tables
+}
+
+### TGW ATTACHMENTS ###
+
+module "transit_gateway_attachment" {
+  source = "../../modules/transit_gateway_attachment"
+
+  for_each = var.tgw.attachments
+
+  name                        = "${var.name_prefix}${each.value.name}"
+  vpc_id                      = module.subnet_sets[each.value.vpc_subnet].vpc_id
+  subnets                     = module.subnet_sets[each.value.vpc_subnet].subnets
+  transit_gateway_route_table = module.transit_gateway.route_tables[each.value.route_table]
+  propagate_routes_to = {
+    to1 = module.transit_gateway.route_tables[each.value.propagate_routes_to].id
+  }
+}
+
+resource "aws_ec2_transit_gateway_route" "from_spokes_to_security" {
+  transit_gateway_route_table_id = module.transit_gateway.route_tables["from_spoke_vpc"].id
+  transit_gateway_attachment_id  = module.transit_gateway_attachment["security"].attachment.id
+  destination_cidr_block         = "0.0.0.0/0"
+  blackhole                      = false
+}
+
+# resource "aws_ec2_transit_gateway_route" "from_security_to_panorama" {
+#   count                          = var.panorama_attachment.transit_gateway_attachment_id != null ? 1 : 0
+#   transit_gateway_route_table_id = module.transit_gateway.route_tables["from_security_vpc"].id
+#   transit_gateway_attachment_id  = var.panorama_attachment.transit_gateway_attachment_id
+#   destination_cidr_block         = var.panorama_attachment.vpc_cidr
+#   blackhole                      = false
+# }
 
 ### SPOKE INBOUND APPLICATION LOAD BALANCER ###
 
@@ -161,8 +205,9 @@ module "gwlbe_endpoint" {
 
   for_each = var.gwlb_endpoints
 
+  gwlb_service_name = try(each.value.service_arn, module.cloudngfw[each.value.cloudngfw].cloudngfw_service_name)
   name              = "${var.name_prefix}${each.value.name}"
-  gwlb_service_name = module.cloudngfw[each.value.cloudngfw].cloudngfw_service_name
+  #gwlb_service_name = module.cloudngfw[each.value.cloudngfw].cloudngfw_service_name
   vpc_id            = module.subnet_sets[each.value.vpc_subnet].vpc_id
   subnets           = module.subnet_sets[each.value.vpc_subnet].subnets
   delay             = each.value.delay

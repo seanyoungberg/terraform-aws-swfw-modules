@@ -1,5 +1,5 @@
 ### GENERAL
-name_prefix             = "cloudngfw-" # TODO: UPDATE TO YOUR NAME
+name_prefix             = "name-" # TODO: UPDATE TO YOUR NAME
 ssh_key_name            = "qwikLABS*"
 provider_role           = "CloudNGFWRole"
 aws_credentials_profile = "default" # TODO: If running locally, change to a profile with your QwikLabs credentials
@@ -14,6 +14,74 @@ global_tags = {
 ### VPC
 vpcs = {
   # Do not use `-` in key for VPC as this character is used in concatation of VPC and subnet for module `subnet_set` in `main.tf`
+  security_vpc = {
+    name = "obew-cgnfw-vpc"
+    cidr = "10.100.0.0/16"
+    nacls = {}
+
+    security_groups = {
+      vmseries_private = {
+        name = "vmseries_private"
+        rules = {
+          all_outbound = {
+            description = "Permit All traffic outbound"
+            type        = "egress", from_port = "0", to_port = "0", protocol = "-1"
+            cidr_blocks = ["0.0.0.0/0"]
+          }
+        }
+      }
+    }
+    subnets = {
+      # Do not modify value of `set=`, it is an internal identifier referenced by main.tf
+      "10.100.1.0/24"  = { az = "us-west-2a", set = "tgw_attach", nacl = null }
+      "10.100.128.0/24" = { az = "us-west-2b", set = "tgw_attach", nacl = null }
+      "10.100.2.0/24"  = { az = "us-west-2a", set = "gwlbe_outbound", nacl = null }
+      "10.100.129.0/24" = { az = "us-west-2b", set = "gwlbe_outbound", nacl = null }
+      "10.100.3.0/24"   = { az = "us-west-2a", set = "natgw", nacl = null }
+      "10.100.130.0/24" = { az = "us-west-2b", set = "natgw", nacl = null }
+    }
+    routes = {
+      # Value of `vpc_subnet` is built from key of VPCs concatenate with `-` and key of subnet in format: `VPCKEY-SUBNETKEY`
+      # Value of `next_hop_key` must match keys use to create TGW attachment, IGW, GWLB endpoint or other resources
+      # Value of `next_hop_type` is internet_gateway, nat_gateway, transit_gateway_attachment or gwlbe_endpoint
+      tgw_rfc1918 = {
+        vpc_subnet    = "security_vpc-tgw_attach"
+        to_cidr       = "10.0.0.0/8"
+        next_hop_key  = "cngfw_obew"
+        next_hop_type = "gwlbe_endpoint"
+      }
+      tgw_default = {
+        vpc_subnet    = "security_vpc-tgw_attach"
+        to_cidr       = "0.0.0.0/0"
+        next_hop_key  = "cngfw_obew"
+        next_hop_type = "gwlbe_endpoint"
+      }
+      public_default = {
+        vpc_subnet    = "security_vpc-natgw"
+        to_cidr       = "0.0.0.0/0"
+        next_hop_key  = "security_vpc"
+        next_hop_type = "internet_gateway"
+      }
+      public_rfc1918 = {
+        vpc_subnet    = "security_vpc-natgw"
+        to_cidr       = "10.0.0.0/8"
+        next_hop_key  = "cngfw_obew"
+        next_hop_type = "gwlbe_endpoint"
+      }
+      gwlbe_outbound_rfc1918 = {
+        vpc_subnet    = "security_vpc-gwlbe_outbound"
+        to_cidr       = "0.0.0.0/0"
+        next_hop_key  = "cngfw_nat_gw"
+        next_hop_type = "nat_gateway"
+      }
+      gwlbe_eastwest_rfc1918 = {
+        vpc_subnet    = "security_vpc-gwlbe_outbound"
+        to_cidr       = "10.0.0.0/8"
+        next_hop_key  = "security"
+        next_hop_type = "transit_gateway_attachment"
+      }
+    }
+  }
   app1_vpc = {
     name  = "app1-spoke-vpc"
     cidr  = "10.104.0.0/16"
@@ -115,8 +183,8 @@ vpcs = {
       app_default = {
         vpc_subnet    = "app1_vpc-app1_vm"
         to_cidr       = "0.0.0.0/0"
-        next_hop_key  = "app1_outbound"
-        next_hop_type = "gwlbe_endpoint"
+        next_hop_key  = "app1"
+        next_hop_type = "transit_gateway"
       }
       gwlbe1_default = {
         vpc_subnet    = "app1_vpc-app1_gwlbe2"
@@ -227,8 +295,8 @@ vpcs = {
       app_default = {
         vpc_subnet    = "app2_vpc-app2_vm"
         to_cidr       = "0.0.0.0/0"
-        next_hop_key  = "app2_outbound"
-        next_hop_type = "gwlbe_endpoint"
+        next_hop_key  = "app2"
+        next_hop_type = "transit_gateway"
       }
       gwlbe2_default = {
         vpc_subnet    = "app2_vpc-app2_gwlbe2"
@@ -236,6 +304,47 @@ vpcs = {
         next_hop_key  = "app2_nat_gw"
         next_hop_type = "nat_gateway"
       }
+    }
+  }
+}
+
+### TRANSIT GATEWAY
+tgw = {
+  create = true
+  id     = null
+  name   = "tgw"
+  asn    = "64512"
+  route_tables = {
+    # Do not change keys `from_security_vpc` and `from_spoke_vpc` as they are used in `main.tf` and attachments
+    "from_security_vpc" = {
+      create = true
+      name   = "from_security"
+    }
+    "from_spoke_vpc" = {
+      create = true
+      name   = "from_spokes"
+    }
+  }
+  attachments = {
+    # Value of `vpc_subnet` is built from key of VPCs concatenate with `-` and key of subnet in format: `VPCKEY-SUBNETKEY`
+    # Value of `route_table` and `propagate_routes_to` must match `route_tables` stores under `tgw`
+    security = {
+      name                = "vmseries"
+      vpc_subnet          = "security_vpc-tgw_attach"
+      route_table         = "from_security_vpc"
+      propagate_routes_to = "from_spoke_vpc"
+    }
+    app1 = {
+      name                = "app1-spoke-vpc"
+      vpc_subnet          = "app1_vpc-app1_vm"
+      route_table         = "from_spoke_vpc"
+      propagate_routes_to = "from_security_vpc"
+    }
+    app2 = {
+      name                = "app2-spoke-vpc"
+      vpc_subnet          = "app2_vpc-app2_vm"
+      route_table         = "from_spoke_vpc"
+      propagate_routes_to = "from_security_vpc"
     }
   }
 }
@@ -249,6 +358,10 @@ natgws = {
   app2_nat_gw = {
     name       = "natgw"
     vpc_subnet = "app2_vpc-app2_natgw"
+  }
+  cngfw_nat_gw = {
+    name       = "natgw"
+    vpc_subnet = "security_vpc-natgw"
   }
 }
 
@@ -395,6 +508,8 @@ cloudngfws = {
       vulnerability = "BestPractice"
       file_blocking = "BestPractice"
       url_filtering = "BestPractice"
+      outbound_trust_certificate = "ca-secrets-manager"
+      outbound_untrust_certificate = "ca-secrets-manager"
     }
   }
 }
@@ -439,4 +554,12 @@ gwlb_endpoints = {
     delay           = 60
     cloudngfw       = "cloudngfws_security"
   }
+  cngfw_obew = {
+    name            = "cngfw_obew"
+    vpc             = "security_vpc"
+    vpc_subnet      = "security_vpc-gwlbe_outbound"
+    act_as_next_hop = false
+    to_vpc_subnets  = null
+    delay           = 0
+    service_arn     = "com.amazonaws.vpce.us-west-2.vpce-svc-0c149074b9832e012" # TODO: UPDATE TO YOUR Cloud NGFW Service
 }

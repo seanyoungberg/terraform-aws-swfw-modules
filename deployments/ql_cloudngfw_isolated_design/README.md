@@ -62,6 +62,7 @@ Session 1
   - [3.8. Panorama Basic Configration](#38-panorama-basic-configration)
   - [3.9. Setup Device Monitoring](#39-setup-device-monitoring)
 - [4. SCM Integration](#4-scm-integration)
+  - [Topology Updates](#topology-updates)
 
 
 
@@ -699,3 +700,42 @@ Instead we will use my SE Lab TSG. Note you can also use any other TSG that you 
 - [Open SCM](https://apps.paloaltonetworks.com/hub?tsg_id=1561638640) for TSG 1561638640
 - Create a new folder and associate your Cloug NGFW
 - Create objects and policies to prepare for outbound and east/west traffic from App1 and App2 environments
+
+## Topology Updates
+
+You can run terraform to update to a recommended OBEW model and direct traffic to your SCM-managed Cloud NGFW.
+
+```
+git pull
+
+cd ~/environment/terraform-aws-swfw-modules/deployments/ql_cloudngfw_isolated_design
+
+mv terraform.tfvars terraform.tfvars.backup
+
+cp example.tfvars terraform.tfvars
+```
+
+Edit terraform.tfvars
+
+Line2 : Edit `name_prefix`. Use the same name you did for the initial deployment!
+Line 564: Edit the Service Name for the Cloud NGFW GWLB service (found in Cloud NGFW console)
+
+```
+  cngfw_obew = {
+    name            = "cngfw_obew"
+    vpc             = "security_vpc"
+    vpc_subnet      = "security_vpc-gwlbe_outbound"
+    act_as_next_hop = false
+    to_vpc_subnets  = null
+    delay           = 0
+    service_arn     = "com.amazonaws.vpce.us-west-2.vpce-svc-0c149074b9832e012"
+  }
+```
+
+Apply terraform
+
+```
+terraform init
+
+terraform apply
+```
