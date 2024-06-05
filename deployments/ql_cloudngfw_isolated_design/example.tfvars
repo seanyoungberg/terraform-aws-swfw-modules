@@ -562,4 +562,5 @@ gwlb_endpoints = {
     to_vpc_subnets  = null
     delay           = 0
     service_arn     = "com.amazonaws.vpce.us-west-2.vpce-svc-0c149074b9832e012" # TODO: UPDATE TO YOUR Cloud NGFW Service
+  }
 }
