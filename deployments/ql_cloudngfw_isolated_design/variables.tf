@@ -132,6 +132,62 @@ variable "vpcs" {
   }))
 }
 
+variable "tgw" {
+  description = <<-EOF
+  A object defining Transit Gateway.
+
+  Following properties are available:
+  - `create`: set to false, if existing TGW needs to be reused
+  - `id`:  id of existing TGW or null
+  - `name`: name of TGW to create or use
+  - `asn`: ASN number
+  - `route_tables`: map of route tables
+  - `attachments`: map of TGW attachments
+
+  Example:
+  ```
+  tgw = {
+    create = true
+    id     = null
+    name   = "tgw"
+    asn    = "64512"
+    route_tables = {
+      "from_security_vpc" = {
+        create = true
+        name   = "from_security"
+      }
+    }
+    attachments = {
+      security = {
+        name                = "vmseries"
+        vpc_subnet          = "security_vpc-tgw_attach"
+        route_table         = "from_security_vpc"
+        propagate_routes_to = "from_spoke_vpc"
+      }
+    }
+  }
+  ```
+  EOF
+  default     = null
+  type = object({
+    create = bool
+    id     = string
+    name   = string
+    asn    = string
+    route_tables = map(object({
+      create = bool
+      name   = string
+    }))
+    attachments = map(object({
+      name                = string
+      vpc_subnet          = string
+      route_table         = string
+      propagate_routes_to = string
+    }))
+  })
+}
+
+
 variable "natgws" {
   description = <<-EOF
   A map defining NAT Gateways.
@@ -350,13 +406,5 @@ variable "gwlb_endpoints" {
   ```
   EOF
   default     = {}
-  type = map(object({
-    name            = string
-    vpc             = string
-    vpc_subnet      = string
-    act_as_next_hop = bool
-    to_vpc_subnets  = string
-    delay           = number
-    cloudngfw       = string
-  }))
+  type = map(any)
 }
