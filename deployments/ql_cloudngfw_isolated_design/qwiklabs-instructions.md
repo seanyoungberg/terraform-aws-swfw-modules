@@ -2,9 +2,7 @@
   
 - Click Open Console from QwikLabs and authenticate to your on-demand AWS account
 
-- Reference the [full lab guide](https://github.com/seanyoungberg/terraform-aws-swfw-modules/tree/main/deployments/ql_cloudngfw_isolated_design) on github.
+- Reference the [full lab guide](https://github.com/seanyoungberg/terraform-aws-swfw-modules/tree/main/deployments/ql_cloudngfw_isolated_design#1-aws-cloud-ngfw-lab) on github.
 
-https://github.com/seanyoungberg/terraform-aws-swfw-modules/tree/main/deployments/ql_cloudngfw_isolated_design
-
-<img src="https://private-user-images.githubusercontent.com/9754982/321893883-a1b04cd9-2324-4488-a104-34fdb15e4254.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MTczNTExOTIsIm5iZiI6MTcxNzM1MDg5MiwicGF0aCI6Ii85NzU0OTgyLzMyMTg5Mzg4My1hMWIwNGNkOS0yMzI0LTQ0ODgtYTEwNC0zNGZkYjE1ZTQyNTQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDYwMiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDA2MDJUMTc1NDUyWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MDYyYmFhNzg2OTczZjQzMmMyNmRmNDZmYThjYjdmOTA0OTIzNzI5ZjJkN2I5ZWMyZjFjMWUyMTU2NzAyMjFlNiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.nCOvNwrcqX6j1qfyKK1bdBcgsEvuIk9cxqAOZfhVATk">
+https://github.com/seanyoungberg/terraform-aws-swfw-modules/tree/main/deployments/ql_cloudngfw_isolated_design#1-aws-cloud-ngfw-lab
 

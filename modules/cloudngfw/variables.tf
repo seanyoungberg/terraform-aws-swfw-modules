@@ -41,6 +41,12 @@ variable "rulestack_name" {
   type        = string
 }
 
+variable "link_id" {
+  description = "The rulestack name."
+  type        = string
+  default     = null
+}
+
 variable "rulestack_scope" {
   description = "The rulestack scope. A local rulestack will require that you've retrieved a LRA JWT. A global rulestack will require that you've retrieved a GRA JWT"
   default     = "Local"

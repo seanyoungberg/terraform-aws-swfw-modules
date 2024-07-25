@@ -9,6 +9,7 @@ resource "cloudngfwaws_ngfw" "this" {
   vpc_id      = var.vpc_id
   account_id  = data.aws_caller_identity.current.id
   description = var.description
+  link_id = try(var.link_id, null)
 
   endpoint_mode = var.endpoint_mode
 
@@ -21,7 +22,7 @@ resource "cloudngfwaws_ngfw" "this" {
     }
   }
 
-  rulestack = cloudngfwaws_commit_rulestack.this.rulestack
+  rulestack = try(cloudngfwaws_commit_rulestack.this.rulestack, null)
 
   tags = var.tags
 }

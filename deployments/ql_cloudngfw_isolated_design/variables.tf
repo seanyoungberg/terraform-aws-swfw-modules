@@ -374,6 +374,7 @@ variable "cloudngfws" {
     security_rules = map(any)
     log_profiles   = map(any)
     profile_config = map(any)
+    link_id        = string
   }))
 }
 

@@ -193,9 +193,10 @@ module "cloudngfw" {
   vpc_id         = module.vpc[each.value.vpc].id
   rulestack_name = "${var.name_prefix}${each.value.name}"
   description    = each.value.description
-  security_rules = each.value.security_rules
-  log_profiles   = each.value.log_profiles
-  profile_config = each.value.profile_config
+  security_rules = try(each.value.security_rules, null)
+  log_profiles   = try(each.value.log_profiles, null)
+  profile_config = try(each.value.profile_config, null)
+  link_id = try(each.value.link_id, null)
 }
 
 ### GWLB ENDPOINTS ###
@@ -225,7 +226,7 @@ module "gwlbe_endpoint" {
   } : {}
 }
 
-### SPOKE VM INSTANCES ####
+### SPOKE VM SETUP ####
 
 data "aws_ami" "this" {
   most_recent = true # newest by time, not by version number
